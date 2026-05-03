@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1600" font-family="Inter, system-ui, sans-serif" font-size="13">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <linearGradient id="hdr-ingest" x1="0" x2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="hdr-retrieve" x1="0" x2="1">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="hdr-agent" x1="0" x2="1">
+      <stop offset="0" stop-color="#059669"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: white; }
+      .section-title { font-size: 16px; font-weight: 700; fill: #0f172a; }
+      .node { fill: #f8fafc; stroke: #334155; stroke-width: 1.5; }
+      .node-text { fill: #0f172a; font-weight: 600; }
+      .node-sub { fill: #475569; font-size: 11px; }
+      .store { fill: #fef3c7; stroke: #ca8a04; stroke-width: 1.5; }
+      .llm { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.5; }
+      .tool { fill: #dbeafe; stroke: #2563eb; stroke-width: 1.5; }
+      .decision { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; }
+      .graph { fill: #d1fae5; stroke: #059669; stroke-width: 1.5; }
+      .memory { fill: #fce7f3; stroke: #ec4899; stroke-width: 1.5; }
+      .link { stroke: #334155; stroke-width: 1.5; fill: none; }
+      .link-blue { stroke: #2563eb; stroke-width: 1.5; fill: none; }
+      .link-green { stroke: #059669; stroke-width: 1.5; fill: none; }
+      .link-purple { stroke: #7c3aed; stroke-width: 1.5; fill: none; }
+      .link-dash { stroke-dasharray: 5,4; }
+      .label { font-size: 11px; fill: #64748b; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <rect x="0" y="0" width="1400" height="50" fill="#0f172a"/>
+  <text x="700" y="32" text-anchor="middle" class="title">RAG3 — End-to-End Pipeline Architecture</text>
+
+  <!-- ================= INGESTION SECTION ================= -->
+  <rect x="20" y="70" width="1360" height="40" rx="6" fill="url(#hdr-ingest)"/>
+  <text x="40" y="95" class="title" font-size="16">① INGESTION PIPELINE   ·   File → Chunks → Stores</text>
+
+  <!-- Row 1: File -> Parser -->
+  <g>
+    <rect x="40" y="140" width="150" height="60" rx="6" class="node"/>
+    <text x="115" y="165" text-anchor="middle" class="node-text">📄 Source File</text>
+    <text x="115" y="184" text-anchor="middle" class="node-sub">PDF · DOCX · HTML · IMG</text>
+
+    <line x1="190" y1="170" x2="240" y2="170" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="240" y="140" width="180" height="60" rx="6" class="node"/>
+    <text x="330" y="163" text-anchor="middle" class="node-text">DocumentParser</text>
+    <text x="330" y="180" text-anchor="middle" class="node-sub">unstructured hi_res</text>
+    <text x="330" y="194" text-anchor="middle" class="node-sub">OCR + layout detection</text>
+
+    <line x1="420" y1="170" x2="470" y2="170" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="470" y="140" width="200" height="60" rx="6" class="node"/>
+    <text x="570" y="165" text-anchor="middle" class="node-text">ParsedElement[]</text>
+    <text x="570" y="184" text-anchor="middle" class="node-sub">text · table · image · title</text>
+  </g>
+
+  <!-- Row 2: Element branches -->
+  <g>
+    <!-- From ParsedElement branches -->
+    <line x1="570" y1="200" x2="570" y2="240" class="link" marker-end="url(#arrow)"/>
+    <line x1="570" y1="220" x2="230" y2="220" class="link"/>
+    <line x1="230" y1="220" x2="230" y2="240" class="link" marker-end="url(#arrow)"/>
+    <line x1="570" y1="220" x2="910" y2="220" class="link"/>
+    <line x1="910" y1="220" x2="910" y2="240" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="130" y="240" width="200" height="60" rx="6" class="llm"/>
+    <text x="230" y="263" text-anchor="middle" class="node-text">VisionProcessor</text>
+    <text x="230" y="280" text-anchor="middle" class="node-sub">Ollama LLaVA:13b</text>
+    <text x="230" y="294" text-anchor="middle" class="node-sub">image → NL description</text>
+
+    <rect x="470" y="240" width="200" height="60" rx="6" class="node"/>
+    <text x="570" y="263" text-anchor="middle" class="node-text">TableReformatter</text>
+    <text x="570" y="280" text-anchor="middle" class="node-sub">rules + LLM</text>
+    <text x="570" y="294" text-anchor="middle" class="node-sub">HTML → natural text</text>
+
+    <rect x="810" y="240" width="200" height="60" rx="6" class="node"/>
+    <text x="910" y="263" text-anchor="middle" class="node-text">Text Elements</text>
+    <text x="910" y="280" text-anchor="middle" class="node-sub">paragraphs · titles</text>
+  </g>
+
+  <!-- Row 3: Chunkers -->
+  <g>
+    <line x1="570" y1="300" x2="570" y2="335" class="link"/>
+    <line x1="230" y1="300" x2="230" y2="320" class="link"/>
+    <line x1="230" y1="320" x2="570" y2="320" class="link"/>
+    <line x1="910" y1="300" x2="910" y2="320" class="link"/>
+    <line x1="910" y1="320" x2="570" y2="320" class="link"/>
+
+    <rect x="440" y="335" width="260" height="60" rx="6" class="tool"/>
+    <text x="570" y="357" text-anchor="middle" class="node-text">SemanticChunker</text>
+    <text x="570" y="374" text-anchor="middle" class="node-sub">embedding breakpoints · percentile=95</text>
+    <text x="570" y="388" text-anchor="middle" class="node-sub">CachedOllamaEmbedder (L1+L2 cache)</text>
+
+    <line x1="570" y1="395" x2="570" y2="425" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="440" y="425" width="260" height="60" rx="6" class="tool"/>
+    <text x="570" y="447" text-anchor="middle" class="node-text">ContextualChunker</text>
+    <text x="570" y="464" text-anchor="middle" class="node-sub">Groq llama3-8b adds 1-sentence context</text>
+    <text x="570" y="478" text-anchor="middle" class="node-sub">"This chunk is from Section 4…"</text>
+
+    <line x1="570" y1="485" x2="570" y2="515" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="440" y="515" width="260" height="60" rx="6" class="tool"/>
+    <text x="570" y="537" text-anchor="middle" class="node-text">HierarchicalChunker</text>
+    <text x="570" y="554" text-anchor="middle" class="node-sub">parents (2000 chars) + children (400 chars)</text>
+    <text x="570" y="568" text-anchor="middle" class="node-sub">deterministic SHA-256 IDs · upsert-safe</text>
+  </g>
+
+  <!-- Row 4: Stores -->
+  <g>
+    <line x1="570" y1="575" x2="570" y2="600" class="link"/>
+    <line x1="200" y1="600" x2="940" y2="600" class="link"/>
+    <line x1="200" y1="600" x2="200" y2="625" class="link" marker-end="url(#arrow)"/>
+    <line x1="570" y1="600" x2="570" y2="625" class="link" marker-end="url(#arrow)"/>
+    <line x1="940" y1="600" x2="940" y2="625" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="80" y="625" width="240" height="90" rx="6" class="store"/>
+    <text x="200" y="650" text-anchor="middle" class="node-text">📊 PgVectorStore</text>
+    <text x="200" y="668" text-anchor="middle" class="node-sub">children + embeddings</text>
+    <text x="200" y="682" text-anchor="middle" class="node-sub">HNSW index (vec_cosine_ops)</text>
+    <text x="200" y="696" text-anchor="middle" class="node-sub">GIN tsv for BM25</text>
+    <text x="200" y="710" text-anchor="middle" class="node-sub">pgvector 0.7+</text>
+
+    <rect x="450" y="625" width="240" height="90" rx="6" class="store"/>
+    <text x="570" y="650" text-anchor="middle" class="node-text">📝 PgSummaryStore</text>
+    <text x="570" y="668" text-anchor="middle" class="node-sub">full / topic / section</text>
+    <text x="570" y="682" text-anchor="middle" class="node-sub">SummaryGenerator upserts</text>
+    <text x="570" y="696" text-anchor="middle" class="node-sub">HNSW on summary vector</text>
+    <text x="570" y="710" text-anchor="middle" class="node-sub">fallback-tier retrieval</text>
+
+    <rect x="820" y="625" width="240" height="90" rx="6" class="graph"/>
+    <text x="940" y="650" text-anchor="middle" class="node-text">🕸 Neo4jGraphStore</text>
+    <text x="940" y="668" text-anchor="middle" class="node-sub">Graphiti episode ingest</text>
+    <text x="940" y="682" text-anchor="middle" class="node-sub">Entity · RELATES_TO · MENTIONS</text>
+    <text x="940" y="696" text-anchor="middle" class="node-sub">Neo4j 5 + APOC</text>
+    <text x="940" y="710" text-anchor="middle" class="node-sub">keyword fallback if Graphiti down</text>
+  </g>
+
+  <!-- ================= RETRIEVAL / AGENTIC SECTION ================= -->
+  <rect x="20" y="760" width="1360" height="40" rx="6" fill="url(#hdr-agent)"/>
+  <text x="40" y="785" class="title" font-size="16">② SESSION + ROUTING   ·   User Query → Intent → Worker Agent</text>
+
+  <!-- User + Session -->
+  <g>
+    <rect x="40" y="830" width="140" height="60" rx="6" class="node"/>
+    <text x="110" y="855" text-anchor="middle" class="node-text">👤 User Query</text>
+    <text x="110" y="874" text-anchor="middle" class="node-sub">chat turn</text>
+
+    <line x1="180" y1="860" x2="220" y2="860" class="link-green" marker-end="url(#arrow-green)"/>
+
+    <rect x="220" y="820" width="220" height="80" rx="6" class="memory"/>
+    <text x="330" y="842" text-anchor="middle" class="node-text">RAGSession</text>
+    <text x="330" y="860" text-anchor="middle" class="node-sub">sliding window (10 turns)</text>
+    <text x="330" y="874" text-anchor="middle" class="node-sub">+ FAISS episodic recall</text>
+    <text x="330" y="888" text-anchor="middle" class="node-sub">+ GraphMemoryManager</text>
+
+    <line x1="440" y1="860" x2="480" y2="860" class="link-green" marker-end="url(#arrow-green)"/>
+
+    <rect x="480" y="810" width="300" height="100" rx="6" class="decision"/>
+    <text x="630" y="832" text-anchor="middle" class="node-text">IntentRouter  (3-Tier)</text>
+    <text x="630" y="852" text-anchor="middle" class="node-sub">① Regex — greetings, graph hints</text>
+    <text x="630" y="868" text-anchor="middle" class="node-sub">② Keyword scoring (vector/graph/hybrid vocab)</text>
+    <text x="630" y="884" text-anchor="middle" class="node-sub">③ LLM arbiter (llama3-8b) for ambiguous</text>
+    <text x="630" y="900" text-anchor="middle" class="node-sub">→ 4 intents</text>
+  </g>
+
+  <!-- 4 route fanout -->
+  <g>
+    <line x1="630" y1="910" x2="630" y2="940" class="link-green"/>
+    <line x1="180" y1="940" x2="1080" y2="940" class="link-green"/>
+    <line x1="180" y1="940" x2="180" y2="970" class="link-green" marker-end="url(#arrow-green)"/>
+    <line x1="480" y1="940" x2="480" y2="970" class="link-green" marker-end="url(#arrow-green)"/>
+    <line x1="780" y1="940" x2="780" y2="970" class="link-green" marker-end="url(#arrow-green)"/>
+    <line x1="1080" y1="940" x2="1080" y2="970" class="link-green" marker-end="url(#arrow-green)"/>
+
+    <text x="180" y="958" text-anchor="middle" class="label">general_chat</text>
+    <text x="480" y="958" text-anchor="middle" class="label">vector_retrieval</text>
+    <text x="780" y="958" text-anchor="middle" class="label">graph_retrieval</text>
+    <text x="1080" y="958" text-anchor="middle" class="label">hybrid_retrieval</text>
+
+    <rect x="60" y="970" width="240" height="70" rx="6" class="llm"/>
+    <text x="180" y="993" text-anchor="middle" class="node-text">GeneralAgent</text>
+    <text x="180" y="1010" text-anchor="middle" class="node-sub">Groq llama3-8b</text>
+    <text x="180" y="1024" text-anchor="middle" class="node-sub">memory-aware small talk</text>
+
+    <rect x="360" y="970" width="240" height="70" rx="6" class="tool"/>
+    <text x="480" y="993" text-anchor="middle" class="node-text">VectorAgent</text>
+    <text x="480" y="1010" text-anchor="middle" class="node-sub">wraps AdvancedRAGAgent</text>
+    <text x="480" y="1024" text-anchor="middle" class="node-sub">retrieval + grader + retry</text>
+
+    <rect x="660" y="970" width="240" height="70" rx="6" class="graph"/>
+    <text x="780" y="993" text-anchor="middle" class="node-text">GraphAgent (LangGraph)</text>
+    <text x="780" y="1010" text-anchor="middle" class="node-sub">extract → search → grade</text>
+    <text x="780" y="1024" text-anchor="middle" class="node-sub">→ expand / answer</text>
+
+    <rect x="960" y="970" width="240" height="70" rx="6" class="tool"/>
+    <text x="1080" y="993" text-anchor="middle" class="node-text">RetrievalAgent (ReAct)</text>
+    <text x="1080" y="1010" text-anchor="middle" class="node-sub">Thought / Action / Observe</text>
+    <text x="1080" y="1024" text-anchor="middle" class="node-sub">picks vector · graph · fusion</text>
+  </g>
+
+  <!-- ================= STRATEGIES SECTION ================= -->
+  <rect x="20" y="1070" width="1360" height="40" rx="6" fill="url(#hdr-retrieve)"/>
+  <text x="40" y="1095" class="title" font-size="16">③ RETRIEVAL STRATEGIES   ·   Expand → Search → Rerank → Reflect → Fuse</text>
+
+  <g>
+    <rect x="40" y="1140" width="200" height="75" rx="6" class="tool"/>
+    <text x="140" y="1162" text-anchor="middle" class="node-text">QueryExpander</text>
+    <text x="140" y="1180" text-anchor="middle" class="node-sub">LLM → N rewrites</text>
+    <text x="140" y="1194" text-anchor="middle" class="node-sub">paraphrase · entity · broader</text>
+
+    <line x1="240" y1="1177" x2="280" y2="1177" class="link-purple" marker-end="url(#arrow-purple)"/>
+
+    <rect x="280" y="1130" width="220" height="95" rx="6" class="store"/>
+    <text x="390" y="1152" text-anchor="middle" class="node-text">Hybrid Search (pgvector)</text>
+    <text x="390" y="1170" text-anchor="middle" class="node-sub">vector (cosine + HNSW)</text>
+    <text x="390" y="1184" text-anchor="middle" class="node-sub">+ BM25 (tsvector ranking)</text>
+    <text x="390" y="1198" text-anchor="middle" class="node-sub">→ Reciprocal Rank Fusion</text>
+    <text x="390" y="1215" text-anchor="middle" class="node-sub">k=60 · top_k=10</text>
+
+    <line x1="500" y1="1177" x2="540" y2="1177" class="link-purple" marker-end="url(#arrow-purple)"/>
+
+    <rect x="540" y="1140" width="200" height="75" rx="6" class="llm"/>
+    <text x="640" y="1162" text-anchor="middle" class="node-text">OllamaRanker</text>
+    <text x="640" y="1180" text-anchor="middle" class="node-sub">bge-reranker-v2-m3</text>
+    <text x="640" y="1194" text-anchor="middle" class="node-sub">cross-encoder top-5</text>
+
+    <line x1="740" y1="1177" x2="780" y2="1177" class="link-purple" marker-end="url(#arrow-purple)"/>
+
+    <rect x="780" y="1140" width="220" height="75" rx="6" class="decision"/>
+    <text x="890" y="1162" text-anchor="middle" class="node-text">SelfReflection (CRAG)</text>
+    <text x="890" y="1180" text-anchor="middle" class="node-sub">relevance · sufficiency · faith</text>
+    <text x="890" y="1194" text-anchor="middle" class="node-sub">accept / expand / abstain</text>
+
+    <line x1="1000" y1="1177" x2="1040" y2="1177" class="link-purple" marker-end="url(#arrow-purple)"/>
+
+    <rect x="1040" y="1140" width="220" height="75" rx="6" class="llm"/>
+    <text x="1150" y="1162" text-anchor="middle" class="node-text">Answer LLM</text>
+    <text x="1150" y="1180" text-anchor="middle" class="node-sub">Groq llama3-70b</text>
+    <text x="1150" y="1194" text-anchor="middle" class="node-sub">cited answer [1][2]…</text>
+  </g>
+
+  <!-- Graph path / fusion -->
+  <g>
+    <rect x="40" y="1250" width="260" height="80" rx="6" class="graph"/>
+    <text x="170" y="1275" text-anchor="middle" class="node-text">GraphSearchTool</text>
+    <text x="170" y="1293" text-anchor="middle" class="node-sub">Graphiti semantic → entity hits</text>
+    <text x="170" y="1307" text-anchor="middle" class="node-sub">Cypher BFS up to max_hops</text>
+    <text x="170" y="1321" text-anchor="middle" class="node-sub">returns facts + nodes + edges</text>
+
+    <line x1="300" y1="1290" x2="340" y2="1290" class="link-purple" marker-end="url(#arrow-purple)"/>
+
+    <rect x="340" y="1250" width="260" height="80" rx="6" class="tool"/>
+    <text x="470" y="1275" text-anchor="middle" class="node-text">GraphVectorFusion</text>
+    <text x="470" y="1293" text-anchor="middle" class="node-sub">parallel vector + graph retrieval</text>
+    <text x="470" y="1307" text-anchor="middle" class="node-sub">RRF across both streams</text>
+    <text x="470" y="1321" text-anchor="middle" class="node-sub">feeds reranker above ↑</text>
+
+    <line x1="470" y1="1250" x2="470" y2="1215" class="link-purple link-dash"/>
+    <line x1="470" y1="1215" x2="640" y2="1215" class="link-purple link-dash" marker-end="url(#arrow-purple)"/>
+
+    <rect x="640" y="1250" width="260" height="80" rx="6" class="store"/>
+    <text x="770" y="1275" text-anchor="middle" class="node-text">SummaryRetriever (fallback)</text>
+    <text x="770" y="1293" text-anchor="middle" class="node-sub">triggered when top-k scores low</text>
+    <text x="770" y="1307" text-anchor="middle" class="node-sub">broadens to section/topic summaries</text>
+    <text x="770" y="1321" text-anchor="middle" class="node-sub">ProgressiveFallback gate</text>
+
+    <rect x="940" y="1250" width="260" height="80" rx="6" class="memory"/>
+    <text x="1070" y="1275" text-anchor="middle" class="node-text">TTLCache (multi-level)</text>
+    <text x="1070" y="1293" text-anchor="middle" class="node-sub">query → doc-set, 1h TTL</text>
+    <text x="1070" y="1307" text-anchor="middle" class="node-sub">short-circuits repeat queries</text>
+    <text x="1070" y="1321" text-anchor="middle" class="node-sub">session + global scope</text>
+  </g>
+
+  <!-- ================= OUTPUT SECTION ================= -->
+  <g>
+    <rect x="20" y="1360" width="1360" height="40" rx="6" fill="#0f172a"/>
+    <text x="40" y="1385" class="title" font-size="16">④ OUTPUT   ·   Synthesiser → User + Memory Write-back + Metrics</text>
+  </g>
+
+  <g>
+    <rect x="100" y="1430" width="260" height="100" rx="6" class="llm"/>
+    <text x="230" y="1455" text-anchor="middle" class="node-text">Synthesiser</text>
+    <text x="230" y="1473" text-anchor="middle" class="node-sub">intent-specific metadata</text>
+    <text x="230" y="1487" text-anchor="middle" class="node-sub">vector → citations [1]…[N]</text>
+    <text x="230" y="1501" text-anchor="middle" class="node-sub">graph → facts + entities</text>
+    <text x="230" y="1515" text-anchor="middle" class="node-sub">hybrid → both buckets</text>
+
+    <line x1="360" y1="1480" x2="420" y2="1480" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="420" y="1430" width="220" height="100" rx="6" class="node"/>
+    <text x="530" y="1455" text-anchor="middle" class="node-text">💬 Response</text>
+    <text x="530" y="1473" text-anchor="middle" class="node-sub">{ answer,</text>
+    <text x="530" y="1487" text-anchor="middle" class="node-sub">  sources, facts, entities,</text>
+    <text x="530" y="1501" text-anchor="middle" class="node-sub">  metadata: {intent, latency,</text>
+    <text x="530" y="1515" text-anchor="middle" class="node-sub">  request_id, confidence} }</text>
+
+    <line x1="640" y1="1480" x2="700" y2="1480" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="1430" width="240" height="100" rx="6" class="memory"/>
+    <text x="820" y="1455" text-anchor="middle" class="node-text">Memory Write-back</text>
+    <text x="820" y="1473" text-anchor="middle" class="node-sub">append turn to sliding window</text>
+    <text x="820" y="1487" text-anchor="middle" class="node-sub">if window ≥ threshold:</text>
+    <text x="820" y="1501" text-anchor="middle" class="node-sub">→ Summariser → FAISS episodic</text>
+    <text x="820" y="1515" text-anchor="middle" class="node-sub">persist on session.flush()</text>
+
+    <line x1="940" y1="1480" x2="1000" y2="1480" class="link" marker-end="url(#arrow)"/>
+
+    <rect x="1000" y="1430" width="260" height="100" rx="6" class="decision"/>
+    <text x="1130" y="1455" text-anchor="middle" class="node-text">MetricsCollector</text>
+    <text x="1130" y="1473" text-anchor="middle" class="node-sub">P50 / P90 / P99 latency</text>
+    <text x="1130" y="1487" text-anchor="middle" class="node-sub">counters: cache hits, key rotates,</text>
+    <text x="1130" y="1501" text-anchor="middle" class="node-sub">reranker calls, reflect rejects</text>
+    <text x="1130" y="1515" text-anchor="middle" class="node-sub">JSON snapshot export</text>
+  </g>
+
+  <!-- Legend -->
+  <g>
+    <rect x="40" y="1555" width="1320" height="35" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+    <rect x="60" y="1565" width="14" height="14" class="node"/>
+    <text x="82" y="1577" fill="#334155">component</text>
+    <rect x="170" y="1565" width="14" height="14" class="tool"/>
+    <text x="192" y="1577" fill="#334155">retrieval tool</text>
+    <rect x="290" y="1565" width="14" height="14" class="llm"/>
+    <text x="312" y="1577" fill="#334155">LLM/generator</text>
+    <rect x="420" y="1565" width="14" height="14" class="store"/>
+    <text x="442" y="1577" fill="#334155">vector store</text>
+    <rect x="540" y="1565" width="14" height="14" class="graph"/>
+    <text x="562" y="1577" fill="#334155">graph store / agent</text>
+    <rect x="700" y="1565" width="14" height="14" class="memory"/>
+    <text x="722" y="1577" fill="#334155">memory / cache</text>
+    <rect x="840" y="1565" width="14" height="14" class="decision"/>
+    <text x="862" y="1577" fill="#334155">router / grader</text>
+    <text x="990" y="1577" fill="#334155">── data flow</text>
+    <text x="1090" y="1577" fill="#334155" font-style="italic">- - optional / conditional</text>
+  </g>
+</svg>
