@@ -28,7 +28,7 @@ flowchart TD
     classDef agent fill:#ede9fe,stroke:#7c3aed,stroke-width:1.5px
     classDef tool fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px
     classDef store fill:#fef3c7,stroke:#ca8a04,stroke-width:1.5px
-    classDef graph fill:#d1fae5,stroke:#059669,stroke-width:1.5px
+    classDef gnode fill:#d1fae5,stroke:#059669,stroke-width:1.5px
     classDef intent fill:#fee2e2,stroke:#dc2626,stroke-width:1.5px
 
     %% INGESTION PIPELINE
@@ -41,7 +41,7 @@ flowchart TD
         chunk --> embed[Ollama Embedder]:::tool
         
         embed --> pg[(Postgres pgvector)]:::store
-        embed --> neo[(Neo4j GraphStore)]:::graph
+        embed --> neo[(Neo4j GraphStore)]:::gnode
     end
 
     %% RETRIEVAL / ORCHESTRATOR
