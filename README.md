@@ -21,17 +21,54 @@ Agentic RAG is a state-of-the-art Document Intelligence and Retrieval-Augmented 
 
 ## 🏗️ Architecture
 
-1.  **Ingestion Pipeline (`Haystack` + `LangGraph`)**:
-    *   **Parse**: Extracts text, tables, and images (`Docling`).
-    *   **Vision**: Describes images using local VLMs (`LLaVA`).
-    *   **Structure**: Cleans up formatting using Groq LLMs.
-    *   **Embed & Store**: Chunks text, embeds via Ollama, and stores in Postgres (`pgvector`).
-    *   **Graph Extraction**: Extracts triples and stores them in Neo4j.
-2.  **Retrieval & Orchestration (`LangGraph`)**:
-    *   **Router**: LLM-based intent routing determines the complexity of the query.
-    *   **General/Vector/Graph/Hybrid Tools**: Executes the appropriate search strategy.
-    *   **Reflection**: Grades the retrieved context. If insufficient, it rewrites the query and retries.
-    *   **Synthesis**: Generates a grounded, multi-paragraph response with inline citations.
+```mermaid
+flowchart TD
+    %% Styling
+    classDef file fill:#f8fafc,stroke:#334155,stroke-width:1.5px
+    classDef agent fill:#ede9fe,stroke:#7c3aed,stroke-width:1.5px
+    classDef tool fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px
+    classDef store fill:#fef3c7,stroke:#ca8a04,stroke-width:1.5px
+    classDef graph fill:#d1fae5,stroke:#059669,stroke-width:1.5px
+    classDef intent fill:#fee2e2,stroke:#dc2626,stroke-width:1.5px
+
+    %% INGESTION PIPELINE
+    subgraph Ingestion["Ingestion Pipeline (LangGraph)"]
+        direction TB
+        doc[📄 Source File]:::file --> parse[Docling Parser]:::tool
+        parse --> vlm[LLaVA Vision]:::agent
+        vlm --> clean[Groq Text Cleaner]:::agent
+        clean --> chunk[Semantic Chunker]:::tool
+        chunk --> embed[Ollama Embedder]:::tool
+        
+        embed --> pg[(Postgres pgvector)]:::store
+        embed --> neo[(Neo4j GraphStore)]:::graph
+    end
+
+    %% RETRIEVAL / ORCHESTRATOR
+    subgraph Retrieval["RAG Orchestrator (LangGraph)"]
+        direction TB
+        user((👤 User Query)):::file --> session[RAG Session Memory]:::store
+        session --> router{LLM Intent Router}:::intent
+        
+        router -- "General" --> gen[General Agent]:::agent
+        router -- "Vector" --> vec[Vector Agent]:::agent
+        router -- "Graph" --> gra[Graph Agent]:::agent
+        router -- "Hybrid" --> hyb[Hybrid Agent]:::agent
+        
+        gen & vec & gra & hyb --> reflect{CRAG Reflection}:::intent
+        reflect -- "Insufficient" --> rewrite[Query Rewriter]:::agent
+        rewrite --> router
+        
+        reflect -- "Accept" --> synth[LLM Synthesizer]:::agent
+        synth --> out((💬 Final Answer)):::file
+    end
+
+    %% Database Links
+    vec -.-> pg
+    gra -.-> neo
+    hyb -.-> pg
+    hyb -.-> neo
+```
 
 ---
 
