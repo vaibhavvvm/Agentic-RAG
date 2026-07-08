@@ -1,5 +1,5 @@
 """
-RAG3 Summary Index Strategy
+RAG Summary Index Strategy
 =============================
 Companion component that produces document-level summaries at ingest
 time (``SummaryGenerator``) and queries the ``PgSummaryStore`` at

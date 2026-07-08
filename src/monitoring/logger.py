@@ -1,5 +1,5 @@
 """
-RAG3 Structured JSON Logger
+RAG Structured JSON Logger
 ============================
 Provides a module-level ``get_logger()`` factory that returns standard
 ``logging.Logger`` instances backed by a JSON formatter.
@@ -206,7 +206,7 @@ def _install_handlers(
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Return a ``logging.Logger`` configured for RAG3.
+    Return a ``logging.Logger`` configured for RAG.
 
     On the first call this reads settings from ``src.config`` and installs
     the root handlers.  Subsequent calls with any ``name`` skip re-init.
@@ -231,9 +231,10 @@ def get_logger(name: str) -> logging.Logger:
 
 @contextmanager
 def timed_operation(
-    operation: str,
-    logger: logging.Logger | None = None,
+    operation: str | logging.Logger,
+    logger: logging.Logger | str | None = None,
     extra: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> Generator[None, None, None]:
     """
     Context manager that logs entry and exit of a named operation.
@@ -246,15 +247,18 @@ def timed_operation(
         operation: Human-readable name for the operation being timed.
         logger:    Logger instance to use; defaults to module-level logger.
         extra:     Additional fields to include in both log lines.
-
-    Example::
-
-        with timed_operation("vector_search", log, extra={"query": q}):
-            results = store.search(q)
     """
-    _log = logger or get_logger(__name__)
+    if isinstance(operation, logging.Logger):
+        _log = operation
+        _op = logger if isinstance(logger, str) else "unknown_operation"
+    else:
+        _op = operation
+        _log = logger if isinstance(logger, logging.Logger) else get_logger(__name__)
+
     _extra: dict[str, Any] = extra or {}
-    _log.debug("Starting operation", extra={"operation": operation, **_extra})
+    _extra.update(kwargs)
+    
+    _log.debug("Starting operation", extra={"operation": _op, **_extra})
     t0 = time.perf_counter()
     try:
         yield

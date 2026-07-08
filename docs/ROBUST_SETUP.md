@@ -1,4 +1,4 @@
-# RAG3 — Robust Local-First RAG: Setup & Command Reference
+# RAG — Robust Local-First RAG: Setup & Command Reference
 
 > **Version:** 1.1.0 &nbsp;|&nbsp; **Python:** 3.11+ &nbsp;|&nbsp; **Orchestration:** LangGraph + Haystack
 
@@ -36,7 +36,7 @@ A confidential, local-first agentic RAG pipeline.
 
 ## 1. Architecture & Pipeline Flow
 
-![RAG3 Pipeline](./pipeline_flow.svg)
+![RAG Pipeline](./pipeline_flow.svg)
 
 ```
 ┌──────────────────────── INGESTION (LangGraph) ────────────────────────┐
@@ -150,8 +150,8 @@ docker run -d --name minio \
 ### 4.3 PostgreSQL + pgvector
 
 ```sql
-CREATE DATABASE rag3;
-\c rag3
+CREATE DATABASE rag;
+\c rag
 CREATE EXTENSION IF NOT EXISTS vector;
 -- tables are auto-created by PgVectorStore.initialise() and PgGraphStore.initialise()
 ```
@@ -209,7 +209,7 @@ OLLAMA__CHAT_MODEL=llama3:8b
 # -------- Postgres --------
 POSTGRES__HOST=localhost
 POSTGRES__PORT=5432
-POSTGRES__DB=rag3
+POSTGRES__DB=rag
 POSTGRES__USER=postgres
 POSTGRES__PASSWORD=postgres
 
@@ -221,14 +221,14 @@ NEO4J__PASSWORD=neo4j
 # -------- FalkorDB --------
 FALKOR__HOST=localhost
 FALKOR__PORT=6379
-FALKOR__GRAPH_NAME=rag3
+FALKOR__GRAPH_NAME=rag
 
 # -------- MinIO --------
 MINIO__ENDPOINT=localhost:9000
 MINIO__ACCESS_KEY=minioadmin
 MINIO__SECRET_KEY=minioadmin
 MINIO__SECURE=false
-MINIO__BUCKET=rag3-assets
+MINIO__BUCKET=rag-assets
 
 # -------- Local reranker --------
 RERANKER__BACKEND=local_hf
@@ -436,6 +436,6 @@ ollama    (HTTP path; legacy, optional)
 
 **See also:**
 - `docs/SETUP.md` — base setup + pipeline flow narrative
-- `docs/RAG3_SETUP_AND_IMPLEMENTATION.md` — deep-dive reference (Phases 1–2 internals)
+- `docs/RAG_SETUP_AND_IMPLEMENTATION.md` — deep-dive reference (Phases 1–2 internals)
 - `docs/pipeline_flow.svg` — visual pipeline diagram
 - `docs/idea.txt` — source spec for this robust variant

@@ -1,5 +1,5 @@
 """
-RAG3 Memory Context Builders
+RAG Memory Context Builders
 ==============================
 Helper functions that format ``MemoryEntry`` lists into prompt-ready
 strings for the LLM.  Kept separate from the store classes so prompt

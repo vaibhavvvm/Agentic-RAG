@@ -1,5 +1,5 @@
 """
-RAG3 Entity-Relation Extractor
+RAG Entity-Relation Extractor
 ================================
 Extracts ``(subject, relation, object)`` triples from free text for the
 graph store. Uses a dedicated **gpt-oss-20b** model family with its own
@@ -138,7 +138,7 @@ def _call_groq(text: str) -> str:
         },
     )
     replies = result.get("replies") or []
-    return (replies[0].content or "").strip() if replies else ""
+    return (replies[0].text or "").strip() if replies else ""
 
 
 def _call_openrouter(text: str) -> str:

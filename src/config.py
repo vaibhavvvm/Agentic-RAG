@@ -1,5 +1,5 @@
 """
-RAG3 System Configuration
+RAG System Configuration
 =========================
 Centralised Pydantic v2 BaseSettings for all environment variables.
 Load order: defaults → .env file → OS environment (OS wins).
@@ -47,7 +47,7 @@ class PostgresSettings(BaseSettings):
     port: int = Field(default=5432, ge=1, le=65535)
     user: str = Field(default="postgres")
     password: SecretStr = Field(default=SecretStr("postgres"))
-    db: str = Field(default="rag3")
+    db: str = Field(default="rag")
 
     # pgvector index settings
     vector_dim: PositiveInt = Field(default=768, description="Embedding dimension")
@@ -127,11 +127,11 @@ class GroqSettings(BaseSettings):
 
     # Model selections
     primary_model: str = Field(
-        default="llama3-70b-8192",
+        default="llama-3.3-70b-versatile",
         description="Default inference model",
     )
     fast_model: str = Field(
-        default="llama3-8b-8192",
+        default="llama-3.1-8b-instant",
         description="Lightweight model for routing/grading tasks",
     )
     vision_model: str | None = Field(
@@ -188,7 +188,7 @@ class MinioSettings(BaseSettings):
     access_key: SecretStr = Field(default=SecretStr("minioadmin"))
     secret_key: SecretStr = Field(default=SecretStr("minioadmin"))
     secure: bool = Field(default=False, description="Use HTTPS")
-    bucket: str = Field(default="rag3-assets")
+    bucket: str = Field(default="rag-assets")
     region: str = Field(default="us-east-1")
     public_base_url: str | None = Field(
         default=None,
@@ -204,7 +204,7 @@ class FalkorSettings(BaseSettings):
     host: str = Field(default="localhost")
     port: int = Field(default=6379, ge=1, le=65535)
     password: SecretStr | None = Field(default=None)
-    graph_name: str = Field(default="rag3")
+    graph_name: str = Field(default="rag")
 
 
 class OpenRouterSettings(BaseSettings):
@@ -224,7 +224,7 @@ class OpenRouterSettings(BaseSettings):
     fast_model: str = Field(default="meta-llama/llama-3.1-8b-instruct")
     request_timeout: PositiveInt = Field(default=120)
     referer: str = Field(default="http://localhost", description="HTTP-Referer header")
-    app_title: str = Field(default="RAG3")
+    app_title: str = Field(default="RAG")
     max_retries_per_key: PositiveInt = Field(default=1)
 
     @property
@@ -248,9 +248,9 @@ class ERExtractionSettings(BaseSettings):
     # Ollama primary: user-provided local model
     ollama_model: str = Field(default="gpt-oss:20b")
     # Groq fallback: Groq-hosted gpt-oss-20b
-    groq_model: str = Field(default="openai/gpt-oss-20b")
+    groq_model: str = Field(default="llama-3.1-8b-instant")
     # OpenRouter secondary fallback
-    openrouter_model: str = Field(default="openai/gpt-oss-20b")
+    openrouter_model: str = Field(default="llama-3.1-8b-instant")
     max_triples_per_episode: PositiveInt = Field(default=20)
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     max_tokens: PositiveInt = Field(default=1024)
@@ -418,7 +418,7 @@ class LangSmithSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="LANGSMITH_", extra="ignore")
 
     api_key: SecretStr | None = Field(default=None, description="LangSmith API key")
-    project: str = Field(default="rag3", description="LangSmith project name")
+    project: str = Field(default="rag", description="LangSmith project name")
     endpoint: str = Field(default="https://api.smith.langchain.com")
     tracing_enabled: bool = Field(
         default=False,
@@ -459,7 +459,7 @@ class MonitoringSettings(BaseSettings):
 
 class Settings(BaseSettings):
     """
-    Root application settings for RAG3.
+    Root application settings for RAG.
 
     Priority (high → low):
         1. Environment variables
@@ -513,7 +513,7 @@ class Settings(BaseSettings):
     )
 
     # ---- Top-level constants ----
-    app_name: str = Field(default="RAG3", description="Application name")
+    app_name: str = Field(default="RAG", description="Application name")
     app_version: str = Field(default="1.0.0")
     environment: Literal["development", "staging", "production"] = Field(
         default="development"

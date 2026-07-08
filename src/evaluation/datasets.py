@@ -1,5 +1,5 @@
 """
-RAG3 Evaluation Datasets
+RAG Evaluation Datasets
 ==========================
 Minimal helpers to load / persist evaluation datasets in a JSONL format:
 
@@ -50,10 +50,10 @@ def example_dataset() -> list[EvalCase]:
     """A tiny built-in dataset useful for smoke tests."""
     return [
         EvalCase(
-            question="What is RAG3 built on?",
-            answer="RAG3 is built on Haystack 2.x with pgvector and Neo4j.",
+            question="What is RAG built on?",
+            answer="RAG is built on Haystack 2.x with pgvector and Neo4j.",
             contexts=[
-                "RAG3 uses Haystack 2.x pipelines, pgvector for dense search, and Neo4j for graph storage."
+                "RAG uses Haystack 2.x pipelines, pgvector for dense search, and Neo4j for graph storage."
             ],
             ground_truth="Haystack 2.x + pgvector + Neo4j",
         ),

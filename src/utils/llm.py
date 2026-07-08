@@ -1,5 +1,5 @@
 """
-RAG3 LLM Helper Pipeline
+RAG LLM Helper Pipeline
 =========================
 Tiny synchronous facade around ``RotatableGroqGenerator`` that the
 retrieval strategies and agents call when they need a one-shot chat
@@ -68,7 +68,7 @@ def _try_groq(system: str, user: str, fast: bool, model: str | None,
     replies = result.get("replies", [])
     if not replies:
         return ""
-    return (replies[0].content or "").strip()
+    return (replies[0].text or "").strip()
 
 
 def _try_openrouter(system: str, user: str, fast: bool, model: str | None,

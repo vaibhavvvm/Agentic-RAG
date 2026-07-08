@@ -1,5 +1,5 @@
 """
-RAG3 Postgres Summary Store
+RAG Postgres Summary Store
 ============================
 ``BaseSummaryStore`` implementation for document-level summaries
 (full / topic / section granularities).

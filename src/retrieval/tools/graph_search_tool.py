@@ -1,5 +1,5 @@
 """
-RAG3 Graph Search Tool
+RAG Graph Search Tool
 ========================
 Wraps the graph store's semantic + subgraph search into a simple
 ``__call__(query) -> list[Document]`` surface that the agent can use.

@@ -1,4 +1,4 @@
-# RAG3 — Setup Guide & Pipeline Flow
+# RAG — Setup Guide & Pipeline Flow
 
 > **Version:** 1.0.0 &nbsp;|&nbsp; **Python:** 3.11+ &nbsp;|&nbsp; **Framework:** Haystack 2.x + LangGraph + custom ReAct
 
@@ -44,7 +44,7 @@ A production-grade **agentic Retrieval-Augmented Generation** system combining h
 
 The full pipeline is visualised in `docs/pipeline_flow.svg`:
 
-![RAG3 Pipeline](./pipeline_flow.svg)
+![RAG Pipeline](./pipeline_flow.svg)
 
 The SVG is divided into four stages:
 
@@ -119,8 +119,8 @@ ollama serve                       # http://localhost:11434
 ### 5.2 PostgreSQL + pgvector
 
 ```sql
-CREATE DATABASE rag3;
-\c rag3
+CREATE DATABASE rag;
+\c rag
 CREATE EXTENSION IF NOT EXISTS vector;
 -- schema is auto-created by PgVectorStore.initialize()
 ```
@@ -153,7 +153,7 @@ OLLAMA__VISION_MODEL=llava:13b
 # --- Postgres ---
 POSTGRES__HOST=localhost
 POSTGRES__PORT=5432
-POSTGRES__DB=rag3
+POSTGRES__DB=rag
 POSTGRES__USER=postgres
 POSTGRES__PASSWORD=postgres
 
@@ -369,8 +369,8 @@ Dataset format (`eval/questions.jsonl`):
 - **LangGraph missing:** `GraphAgent` auto-falls back to a sequential implementation with identical semantics.
 - **Graphiti missing:** `Neo4jGraphStore` falls back to regex keyword extraction for entity creation.
 - **FAISS missing:** `EpisodicMemoryStore` falls back to numpy brute-force cosine search.
-- **Inspect a run:** every component emits structured logs with `request_id` + `session_id` context vars; pipe `logs/rag3.jsonl` into `jq` or Loki.
+- **Inspect a run:** every component emits structured logs with `request_id` + `session_id` context vars; pipe `logs/rag.jsonl` into `jq` or Loki.
 
 ---
 
-**See also:** `docs/RAG3_SETUP_AND_IMPLEMENTATION.md` for the deep-dive reference on Phases 1–2 internals, and `docs/pipeline_flow.svg` for the full visual pipeline.
+**See also:** `docs/RAG_SETUP_AND_IMPLEMENTATION.md` for the deep-dive reference on Phases 1–2 internals, and `docs/pipeline_flow.svg` for the full visual pipeline.

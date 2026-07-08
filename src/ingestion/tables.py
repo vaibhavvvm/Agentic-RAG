@@ -1,5 +1,5 @@
 """
-RAG3 Table Reformatter
+RAG Table Reformatter
 =======================
 Converts HTML table strings (output of ``DocumentParser``) into natural-
 language prose optimised for semantic embedding and retrieval.

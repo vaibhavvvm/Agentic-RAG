@@ -1,5 +1,5 @@
 """
-RAG3 Postgres-based Graph Store (PG-Graph)
+RAG Postgres-based Graph Store (PG-Graph)
 =============================================
 A lightweight graph implementation on top of PostgreSQL — used when the
 user launches the system with ``--graph-backend pggraph``. It avoids the

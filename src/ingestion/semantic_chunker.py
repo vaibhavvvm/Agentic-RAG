@@ -1,5 +1,5 @@
 """
-RAG3 Semantic Chunker
+RAG Semantic Chunker
 ======================
 Splits text into semantically coherent chunks by detecting embedding-space
 breakpoints between consecutive sentences.

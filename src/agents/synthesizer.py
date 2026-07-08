@@ -1,5 +1,5 @@
 """
-RAG3 Response Synthesiser
+RAG Response Synthesiser
 ===========================
 Formats the final user-facing response and attaches intent-specific
 metadata. Deliberately LLM-free: callers supply the answer text; this

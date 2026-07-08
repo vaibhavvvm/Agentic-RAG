@@ -48,7 +48,7 @@
 
   <!-- Title -->
   <rect x="0" y="0" width="1400" height="50" fill="#0f172a"/>
-  <text x="700" y="32" text-anchor="middle" class="title">RAG3 — End-to-End Pipeline Architecture</text>
+  <text x="700" y="32" text-anchor="middle" class="title">RAG — End-to-End Pipeline Architecture</text>
 
   <!-- ================= INGESTION SECTION ================= -->
   <rect x="20" y="70" width="1360" height="40" rx="6" fill="url(#hdr-ingest)"/>

@@ -1,5 +1,5 @@
 """
-RAG3 Neo4j + Graphiti Graph Store
+RAG Neo4j + Graphiti Graph Store
 ===================================
 Implements ``BaseGraphStore`` using:
 
@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
+import json
 from typing import Any
 
 from neo4j import AsyncGraphDatabase
@@ -180,7 +181,7 @@ class Neo4jGraphStore(BaseGraphStore):
                 await self._graphiti.add_episode(
                     name=episode_id,
                     episode_body=content,
-                    source_description=(metadata or {}).get("source", "rag3"),
+                    source_description=(metadata or {}).get("source", "rag"),
                     reference_time=datetime.now(tz=timezone.utc),
                 )
                 return
@@ -197,7 +198,7 @@ class Neo4jGraphStore(BaseGraphStore):
             "id": episode_id,
             "content": content,
             "created_at": datetime.now(tz=timezone.utc).isoformat(),
-            "metadata": metadata or {},
+            "metadata": json.dumps(metadata) if metadata else "{}",
             "keywords": keywords,
         }
         cypher = """

@@ -1,5 +1,5 @@
 """
-RAG3 Evaluation Metrics
+RAG Evaluation Metrics
 =========================
 Wraps RAGAS (when available) and provides a lightweight local fallback
 for the four core RAG metrics:

@@ -1,5 +1,5 @@
 """
-RAG3 PgVector Hybrid Store
+RAG PgVector Hybrid Store
 ============================
 Production-grade ``BaseVectorStore`` implementation backed by PostgreSQL
 with the ``pgvector`` extension and native full-text search (tsvector).
@@ -184,7 +184,7 @@ class PgVectorStore(BaseVectorStore):
                 async with conn.transaction():
                     await conn.executemany(sql, rows)
 
-        self._metrics.record_event("pgvector.upsert", value=len(rows))
+        self._metrics.record_event("pgvector.upsert", count=len(rows))
         return [doc.id for doc in documents]
 
     # ------------------------------------------------------------------
@@ -220,7 +220,6 @@ class PgVectorStore(BaseVectorStore):
     ) -> list[SearchResult]:
         where_sql, where_params = self._compile_filters(filters, start_index=2)
         sql = f"""
-            SET LOCAL hnsw.ef_search = {self._hnsw_ef_search};
             SELECT id, content, metadata,
                    1 - (embedding <=> $1::vector) AS score
             FROM {self._table}
@@ -233,6 +232,9 @@ class PgVectorStore(BaseVectorStore):
         with timed_operation(log, "pgvector.search.vector"):
             async with self._pool.acquire() as conn:
                 async with conn.transaction():
+                    await conn.execute(
+                        f"SET LOCAL hnsw.ef_search = {self._hnsw_ef_search};"
+                    )
                     rows = await conn.fetch(sql, *params)
 
         return [

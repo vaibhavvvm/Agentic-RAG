@@ -1,5 +1,5 @@
 """
-RAG3 Cross-Encoder Reranker
+RAG Cross-Encoder Reranker
 ============================
 Haystack 2.x ``@component`` that rescores ``(query, passage)`` pairs
 using the local **bge-reranker-v2-m3** checkpoint at
@@ -142,7 +142,7 @@ class OllamaRanker:  # name preserved for back-compat across callers
             documents, key=lambda d: d.meta.get(self.score_key, 0.0), reverse=True
         )[:k]
 
-        self._metrics.record_event("reranker.calls", value=len(documents))
+        self._metrics.record_event("reranker.calls", count=len(documents))
         return {"documents": ranked}
 
     # ------------------------------------------------------------------

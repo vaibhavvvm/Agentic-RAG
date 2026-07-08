@@ -1,5 +1,5 @@
 """
-RAG3 General Chat Agent
+RAG General Chat Agent
 =========================
 Handles greetings and non-retrieval queries with a fast Groq model.
 Uses the session's memory context block so the LLM stays coherent

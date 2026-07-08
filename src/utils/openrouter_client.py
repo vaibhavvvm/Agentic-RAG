@@ -1,5 +1,5 @@
 """
-RAG3 OpenRouter Client (Rotatable)
+RAG OpenRouter Client (Rotatable)
 ====================================
 Httpx-based OpenAI-compatible chat client with **multi-key rotation**:
 cycles through the pool when any one key hits 429 / 402 (rate limit or

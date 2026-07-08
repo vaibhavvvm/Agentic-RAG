@@ -1,5 +1,5 @@
 """
-RAG3 LangGraph Orchestrator
+RAG LangGraph Orchestrator
 =============================
 Multi-agent supervisor implemented as a LangGraph state machine with
 conditional edges and a reflect / rewrite loop.
@@ -104,13 +104,24 @@ class _Deps:
 # ---------------------------------------------------------------------------
 
 _ENTITY_PROMPT = (
-    "Extract 1–6 named entities or keywords from the query as graph nodes. "
-    'Return JSON: {"entities": ["..."]}. Lowercase, no duplicates.'
+    "Extract 1–6 named entities, technical terms, or key concepts from the "
+    "user query that would be useful as graph search nodes. "
+    'Return valid JSON: {"entities": ["entity1", "entity2"]}. '
+    "Rules: lowercase, no duplicates, prefer specific terms over generic ones. "
+    'If the query is conversational (greetings, opinions), return {"entities": []}.'
 )
 
 _SYNTH_FALLBACK_SYSTEM = (
-    "Answer using ONLY the provided context. Cite inline as [1], [2]. "
-    "If the answer is not in the context, say so clearly."
+    "You are an expert research assistant. Answer the user's question using "
+    "ONLY the provided context snippets and conversation memory.\n\n"
+    "Rules:\n"
+    "1. Cite sources inline as [1], [2], etc. matching the context snippet numbers.\n"
+    "2. If the answer is NOT in the context, state clearly: "
+    '"I don\'t have enough information in the knowledge base to answer this."\n'
+    "3. Do NOT invent, hallucinate, or extrapolate beyond what the context states.\n"
+    "4. Use the conversation memory to understand follow-up questions and maintain coherence.\n"
+    "5. Structure your answer clearly with markdown formatting when appropriate.\n"
+    "6. If multiple sources corroborate, synthesize them into a unified answer."
 )
 
 
@@ -141,8 +152,14 @@ def _route_node(deps: _Deps):
 
 def _general_node():
     _system = (
-        "You are a concise, friendly assistant. "
-        "No retrieval needed. Keep answers under three sentences."
+        "You are an intelligent assistant powered by a Retrieval-Augmented Generation system.\n"
+        "You have access to the user's conversation history and episodic memory summaries.\n\n"
+        "Rules:\n"
+        "1. Use the conversation history and memory context to give personalized, contextual answers.\n"
+        "2. If memory context references past discussions, acknowledge them naturally.\n"
+        "3. Be concise but thorough. Prefer structured answers (bullet points, numbered lists).\n"
+        "4. Never fabricate information. If unsure, say so.\n"
+        "5. For greetings and small talk, be warm and brief."
     )
 
     def _node(state: OrchestratorState) -> OrchestratorState:
@@ -150,7 +167,7 @@ def _general_node():
             f"{state.mem_context}\n\n[CURRENT TURN]\nUSER: {state.query}"
             if state.mem_context else state.query
         )
-        state.answer = chat_sync(_system, user, fast=True, temperature=0.4, max_tokens=300)
+        state.answer = chat_sync(_system, user, fast=True, temperature=0.4, max_tokens=512)
         return state
     return _node
 
@@ -246,16 +263,27 @@ def _synthesize_node(synth_chain):
     def _node(state: OrchestratorState) -> OrchestratorState:
         context = _format_context(state.docs)
 
+        is_analytical = any(
+            kw in state.original_query.lower()
+            for kw in ["explain", "detail", "deep", "analyze", "impact", "effect", "difference"]
+        )
+        verbosity_instruction = (
+            "\n\n[INSTRUCTION]\nThe user has requested an in-depth explanation or analysis. "
+            "Please provide a comprehensive, multi-paragraph response covering all relevant nuances and details."
+            if is_analytical else ""
+        )
+
         if synth_chain is not None:
             try:
                 out = synth_chain.invoke({
-                    "query": state.original_query,
+                    "query": state.original_query + verbosity_instruction,
                     "context": context,
+                    "memory": state.mem_context or "(no prior conversation)",
                 })
                 state.answer = out.answer
                 state.trace["synth_confidence"] = out.confidence
                 state.trace["synth_backend"] = "langchain"
-                log.info("Synthesized (LangChain)", extra={"confidence": out.confidence})
+                log.info("Synthesized (LangChain)", extra={"confidence": out.confidence, "analytical": is_analytical})
                 return state
             except Exception as exc:
                 log.warning("Synth chain failed, using chat_sync", extra={"err": str(exc)[:120]})
@@ -263,9 +291,10 @@ def _synthesize_node(synth_chain):
         user = (
             (state.mem_context + "\n\n" if state.mem_context else "")
             + f"[CONTEXT]\n{context}\n\n[QUESTION]\n{state.original_query}"
+            + verbosity_instruction
         )
         state.answer = chat_sync(
-            _SYNTH_FALLBACK_SYSTEM, user, fast=False, temperature=0.1, max_tokens=768
+            _SYNTH_FALLBACK_SYSTEM, user, fast=False, temperature=0.1, max_tokens=2048
         )
         state.trace["synth_backend"] = "chat_sync"
         return state

@@ -1,5 +1,5 @@
 """
-RAG3 CLI + System Bootstrap
+RAG CLI + System Bootstrap
 =============================
 Entry point that wires together every layer into a ``RAGSystem`` and
 exposes ``chat``, ``ingest``, ``evaluate``, and ``healthcheck`` commands
@@ -40,7 +40,7 @@ from src.storage.vector.factory import build_vector_store
 
 log = get_logger(__name__)
 setup_langsmith()  # no-op when LANGSMITH_TRACING_ENABLED=false (default)
-app = typer.Typer(add_completion=False, help="RAG3 — Agentic Retrieval-Augmented Generation")
+app = typer.Typer(add_completion=False, help="RAG — Agentic Retrieval-Augmented Generation")
 console = Console()
 
 
@@ -104,7 +104,7 @@ class RAGSystem:
             raise RuntimeError("Call startup() first.")
         return self._orchestrator
 
-    def ingest_file(self, file_path: Path) -> dict[str, int]:
+    async def ingest_file(self, file_path: Path) -> dict[str, int]:
         """Run the LangGraph ingestion pipeline for a single file."""
         assert self.vector_store is not None and self.graph_store is not None
         pipeline = LangGraphIngestionPipeline(
@@ -113,7 +113,7 @@ class RAGSystem:
             graph_store=self.graph_store,
             minio=self.minio,
         )
-        return pipeline.run(file_path)
+        return await pipeline.arun(file_path)
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ async def _chat_loop(
     )
 
     console.print(
-        f"[bold green]RAG3 session {session.session_id} "
+        f"[bold green]RAG session {session.session_id} "
         f"(graph={type(system.graph_store).__name__}, "
         f"vector={type(system.vector_store).__name__}) — Ctrl+C to exit[/bold green]"
     )
@@ -171,7 +171,7 @@ async def _chat_loop(
             if not query:
                 continue
             response = await system.orchestrator.ask(query, session)
-            console.print("[bold magenta]rag3 >[/bold magenta]")
+            console.print("[bold magenta]rag >[/bold magenta]")
             console.print(Markdown(response.answer or "_(no answer)_"))
             if response.sources:
                 img_urls = [

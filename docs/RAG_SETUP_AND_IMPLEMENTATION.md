@@ -1,4 +1,4 @@
-# RAG3 — Complete Setup, Architecture & Implementation Reference
+# RAG — Complete Setup, Architecture & Implementation Reference
 
 > **Version:** 1.0.0 | **Python:** 3.11+ | **Framework:** Haystack 2.x
 
@@ -25,7 +25,7 @@
 
 ## 1. System Overview
 
-RAG3 is a **production-grade, agentic Retrieval-Augmented Generation system** built on:
+RAG is a **production-grade, agentic Retrieval-Augmented Generation system** built on:
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -155,7 +155,7 @@ RAG/
 ├── .env.example                  ← Template with all variables documented
 ├── pyproject.toml                ← Dependencies + tool config
 ├── docs/
-│   └── RAG3_SETUP_AND_IMPLEMENTATION.md  ← This file
+│   └── RAG_SETUP_AND_IMPLEMENTATION.md  ← This file
 ├── data/
 │   └── faiss_episodic/           ← Auto-created: FAISS index storage
 └── src/
@@ -459,9 +459,9 @@ make && sudo make install
 
 # Create database
 sudo -u postgres psql <<EOF
-CREATE USER rag3user WITH PASSWORD 'yourpassword';
-CREATE DATABASE rag3 OWNER rag3user;
-\c rag3
+CREATE USER raguser WITH PASSWORD 'yourpassword';
+CREATE DATABASE rag OWNER raguser;
+\c rag
 CREATE EXTENSION vector;
 \q
 EOF
@@ -470,10 +470,10 @@ EOF
 **Docker alternative:**
 ```bash
 docker run -d \
-  --name rag3-postgres \
-  -e POSTGRES_USER=rag3user \
+  --name rag-postgres \
+  -e POSTGRES_USER=raguser \
   -e POSTGRES_PASSWORD=yourpassword \
-  -e POSTGRES_DB=rag3 \
+  -e POSTGRES_DB=rag \
   -p 5432:5432 \
   ankane/pgvector:v0.7.4
 ```
@@ -483,7 +483,7 @@ docker run -d \
 ```bash
 # Docker (recommended)
 docker run -d \
-  --name rag3-neo4j \
+  --name rag-neo4j \
   -e NEO4J_AUTH=neo4j/yourpassword \
   -e NEO4J_PLUGINS='["apoc"]' \
   -p 7687:7687 \
@@ -906,7 +906,7 @@ ERROR: different vector dimensions 768 and 1024
 The FAISS index is created automatically at the path in `MEMORY_FAISS_INDEX_PATH`.
 If the path is read-only:
 ```env
-MEMORY_FAISS_INDEX_PATH=/tmp/rag3_faiss
+MEMORY_FAISS_INDEX_PATH=/tmp/rag_faiss
 ```
 
 ### Tesseract not found (hi_res PDF)
@@ -933,4 +933,4 @@ export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 
 ---
 
-*Generated for RAG3 v1.0.0 — 2026-04-20*
+*Generated for RAG v1.0.0 — 2026-04-20*

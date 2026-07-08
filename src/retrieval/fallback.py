@@ -1,5 +1,5 @@
 """
-RAG3 Progressive Retrieval Fallback
+RAG Progressive Retrieval Fallback
 =====================================
 Chains retrieval strategies in increasing-cost order and returns the
 first result set that satisfies a quality gate.

@@ -1,5 +1,5 @@
 """
-RAG3 Abstract Storage Interfaces
+RAG Abstract Storage Interfaces
 ==================================
 Defines the protocol contracts that every concrete storage backend must
 satisfy.  Keeping these as pure ABCs (Abstract Base Classes) lets the

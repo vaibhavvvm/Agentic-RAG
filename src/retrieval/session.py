@@ -1,5 +1,5 @@
 """
-RAG3 Session Container
+RAG Session Container
 =======================
 ``RAGSession`` glues together a session id, its conversational memory
 store, and the per-session cache.  Its job is to hand the orchestrator

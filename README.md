@@ -1,93 +1,122 @@
-# RAG
+# Agentic RAG — Intelligent Document Intelligence 🧠
 
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg)
+![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)
+![Neo4j](https://img.shields.io/badge/Neo4j-Graph-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-336791)
 
+Agentic RAG is a state-of-the-art Document Intelligence and Retrieval-Augmented Generation (RAG) system. It goes beyond simple vector search by combining **Knowledge Graphs**, **Vision-Language Models (VLMs)**, and **Agentic Orchestration** to understand, synthesize, and reason across complex documents.
 
-## Getting started
+## ✨ Key Features
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+*   **Hybrid Orchestration:** Uses a LangGraph-based intent router that dynamically decides whether a query requires simple vector lookups, multi-hop graph traversal, or a hybrid fusion of both.
+*   **Multi-Modal Ingestion:** Parses unstructured PDFs, tables, and images using `Docling`. Extracts visual contexts using `LLaVA` (Ollama) and stores them seamlessly.
+*   **Knowledge Graph Extraction:** Automatically extracts entities and relationships (triples) from documents and stores them in Neo4j for deep, relational querying.
+*   **Vector Search & Reranking:** Uses `pgvector` for semantic search and `Ollama` cross-encoders to re-rank chunks for maximum relevance.
+*   **Episodic Memory:** Maintains long-term and short-term session memories to allow for continuous, contextual conversations.
+*   **Beautiful UI:** A modern, dark-mode React frontend to manage your knowledge base, chat with the agent, and view source citations.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## 🏗️ Architecture
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+1.  **Ingestion Pipeline (`Haystack` + `LangGraph`)**:
+    *   **Parse**: Extracts text, tables, and images (`Docling`).
+    *   **Vision**: Describes images using local VLMs (`LLaVA`).
+    *   **Structure**: Cleans up formatting using Groq LLMs.
+    *   **Embed & Store**: Chunks text, embeds via Ollama, and stores in Postgres (`pgvector`).
+    *   **Graph Extraction**: Extracts triples and stores them in Neo4j.
+2.  **Retrieval & Orchestration (`LangGraph`)**:
+    *   **Router**: LLM-based intent routing determines the complexity of the query.
+    *   **General/Vector/Graph/Hybrid Tools**: Executes the appropriate search strategy.
+    *   **Reflection**: Grades the retrieved context. If insufficient, it rewrites the query and retries.
+    *   **Synthesis**: Generates a grounded, multi-paragraph response with inline citations.
 
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+Ensure you have the following installed on your machine:
+*   [Docker](https://docs.docker.com/get-docker/) & Docker Compose
+*   [Python 3.12+](https://www.python.org/downloads/)
+*   [Node.js 18+](https://nodejs.org/)
+*   [Ollama](https://ollama.com/) (Running locally for embeddings and reranking)
+
+### 2. Environment Setup
+Clone the repository and set up your `.env` file:
+```bash
+cp .env.example .env
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/vm1363/rag.git
-git branch -M main
-git push -uf origin main
+Add your required API keys (e.g., `GROQ_API_KEYS`) in the `.env` file.
+
+### 3. Start Infrastructure Services
+Start the required databases and object storage (PostgreSQL, Neo4j, MinIO):
+```bash
+docker-compose up -d
 ```
 
-## Integrate with your tools
+### 4. Install Dependencies
+**Backend:**
+```bash
+python3 -m venv src/.venv
+source src/.venv/bin/activate
+pip install -r requirements.txt
+```
 
-* [Set up project integrations](https://gitlab.com/vm1363/rag/-/settings/integrations)
+**Frontend:**
+```bash
+cd frontend
+npm install
+```
 
-## Collaborate with your team
+---
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## 💻 Running the Application
 
-## Test and Deploy
+To run the full stack locally:
 
-Use the built-in continuous integration in GitLab.
+1.  **Start the Backend API:**
+    ```bash
+    # From the project root
+    src/.venv/bin/python -m uvicorn src.server:app --port 8000 --host 0.0.0.0
+    ```
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+2.  **Start the Frontend UI:**
+    ```bash
+    cd frontend
+    npm run dev
+    ```
+    Navigate to `http://localhost:5173` to use the application! (Alternatively, the built UI is served on port 8000 by the backend).
 
-***
+---
 
-# Editing this README
+## 🛠️ CLI Utilities
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Agentic RAG also comes with a powerful CLI for headless operations:
 
-## Suggestions for a good README
+```bash
+# Check system health (Databases, LLMs)
+python -m src.main healthcheck
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+# Ingest a single document
+python -m src.main ingest path/to/document.pdf
 
-## Name
-Choose a self-explaining name for your project.
+# Ingest an entire directory recursively
+python -m src.main ingest path/to/directory --recursive
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+# Run an interactive terminal chat (Rich UI)
+python -m src.main chat
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+# Run evaluations on a dataset
+python -m src.main evaluate eval/questions.jsonl
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request or open an Issue to discuss improvements, bug fixes, or new features.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## 📄 License
+This project is licensed under the MIT License.

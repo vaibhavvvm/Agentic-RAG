@@ -1,5 +1,5 @@
 """
-RAG3 FAISS Episodic Memory + Graph Memory Manager
+RAG FAISS Episodic Memory + Graph Memory Manager
 ====================================================
 Implements ``BaseMemoryStore`` with three layers:
 

@@ -1,5 +1,5 @@
 """
-RAG3 LangGraph-Based Graph Retrieval Agent
+RAG LangGraph-Based Graph Retrieval Agent
 =============================================
 Stateful multi-step graph worker implemented as a ``langgraph`` state
 machine. Each node is a pure function that mutates the shared

@@ -1,5 +1,5 @@
 """
-RAG3 Cached Ollama Text Embedder
+RAG Cached Ollama Text Embedder
 ==================================
 Haystack 2.x ``@component`` wrapping the Ollama embedding API with:
 

@@ -1,5 +1,5 @@
 """
-RAG3 Docling Parser
+RAG Docling Parser
 =====================
 Docling-based document parser that converts PDFs/DOCX/HTML into:
 

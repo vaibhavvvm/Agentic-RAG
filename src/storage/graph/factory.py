@@ -1,5 +1,5 @@
 """
-RAG3 Graph Store Factory
+RAG Graph Store Factory
 ==========================
 Returns the correct ``BaseGraphStore`` implementation for the current
 CLI/config choice, with a built-in fallback chain:

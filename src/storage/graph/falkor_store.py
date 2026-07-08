@@ -1,5 +1,5 @@
 """
-RAG3 FalkorDB Graph Store
+RAG FalkorDB Graph Store
 ===========================
 FalkorDB is a Redis-module graph DB speaking OpenCypher. This adapter
 implements the ``BaseGraphStore`` contract using the ``falkordb``

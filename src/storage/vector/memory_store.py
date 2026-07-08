@@ -1,5 +1,5 @@
 """
-RAG3 In-Memory Vector Store
+RAG In-Memory Vector Store
 =============================
 Numpy-backed fallback that implements ``BaseVectorStore`` for cases
 where pgvector is unreachable. Designed for developer laptops, CI, and

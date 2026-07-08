@@ -1,5 +1,5 @@
 """
-RAG3 Three-Tier Intent Router
+RAG Three-Tier Intent Router
 ==============================
 Decides *whether* retrieval is needed and, if so, which worker agent
 should handle the query:
@@ -124,17 +124,7 @@ class IntentRouter:
         if _GRAPH_RE.search(q):
             return RouterDecision(Intent.GRAPH, 0.85, "regex", "graph pattern match")
 
-        # Tier 2
-        v = _score_keywords(q, _VECTOR_KEYWORDS)
-        g = _score_keywords(q, _GRAPH_KEYWORDS)
-        h = _score_keywords(q, _HYBRID_KEYWORDS)
-        best = max(v, g, h)
-        if best >= self._kw_threshold:
-            if h == best:
-                return RouterDecision(Intent.HYBRID, h, "keyword", "hybrid keywords")
-            if g == best:
-                return RouterDecision(Intent.GRAPH, g, "keyword", "graph keywords")
-            return RouterDecision(Intent.VECTOR, v, "keyword", "vector keywords")
+        # Tier 2 removed (reliance entirely on LLM arbiter for complex intents)
 
         # Tier 3 — LangChain ChatPromptTemplate + PydanticOutputParser
         if self._lc_chain is not None:

@@ -1,5 +1,5 @@
 """
-RAG3 Hierarchical Chunker
+RAG Hierarchical Chunker
 ==========================
 Creates a two-level parent → child chunk hierarchy for multi-granularity
 retrieval.

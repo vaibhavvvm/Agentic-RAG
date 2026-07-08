@@ -1,5 +1,5 @@
 """
-RAG3 Contextual Chunker
+RAG Contextual Chunker
 ========================
 Enriches each chunk with LLM-generated context that describes the chunk's
 role within the broader document.

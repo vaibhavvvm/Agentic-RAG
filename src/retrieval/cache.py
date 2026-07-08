@@ -1,5 +1,5 @@
 """
-RAG3 Retrieval Cache
+RAG Retrieval Cache
 ======================
 Thread-safe multi-level TTL LRU for retrieval results (query → docs).
 Used by the orchestrator to short-circuit identical queries within a

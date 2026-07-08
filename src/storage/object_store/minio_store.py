@@ -1,5 +1,5 @@
 """
-RAG3 MinIO Object Store
+RAG MinIO Object Store
 ========================
 Lightweight async wrapper around the ``minio`` SDK for storing raw image
 crops produced during ingestion. Every stored object's URL is attached

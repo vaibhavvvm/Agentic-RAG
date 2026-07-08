@@ -1,5 +1,5 @@
 """
-RAG3 Vector Search Tool
+RAG Vector Search Tool
 =========================
 Exposes the full vector retrieval sub-pipeline (query expansion →
 vector/hybrid search → reranker → self-reflection) as a single

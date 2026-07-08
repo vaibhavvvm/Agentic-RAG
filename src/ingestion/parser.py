@@ -1,5 +1,5 @@
 """
-RAG3 Document Parser
+RAG Document Parser
 =====================
 Converts raw files (PDF, DOCX, HTML, TXT, Markdown, images) into typed
 ``ParsedElement`` objects that downstream chunkers and processors consume.

@@ -1,5 +1,5 @@
 """
-RAG3 Vision Processor
+RAG Vision Processor
 ======================
 Converts base64-encoded images (extracted by ``DocumentParser``) into
 rich natural-language descriptions suitable for embedding and retrieval.

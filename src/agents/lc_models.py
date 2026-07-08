@@ -59,11 +59,19 @@ class SynthesisOutput(BaseModel):
 # ---------------------------------------------------------------------------
 
 _ROUTER_TMPL = """\
-Classify the user query for a RAG system. Pick ONE intent:
-- "general_chat": greetings, small talk, meta questions
-- "vector_retrieval": factual lookup, definitions, descriptions
-- "graph_retrieval": relational / multi-hop questions
-- "hybrid_retrieval": mix of factual and relational
+You are classifying a user query for an intelligent RAG system.
+
+Intent categories:
+- "general_chat": greetings, opinions, small talk, meta questions about the assistant itself
+- "vector_retrieval": factual questions, definitions, "what is X", "explain Y", document content lookup
+- "graph_retrieval": relational questions, "how does X relate to Y", multi-hop reasoning, causal chains, entity connections
+- "hybrid_retrieval": questions needing both factual document content AND entity relationships
+
+Guidelines:
+- Follow-up questions (e.g. "tell me more", "what about X") should inherit the previous intent type
+- Questions about document content → vector_retrieval
+- Questions about connections between concepts → graph_retrieval
+- When in doubt, prefer vector_retrieval over graph_retrieval
 
 {format_instructions}
 
@@ -91,10 +99,20 @@ Original query: {query}
 Retrieval failure reason: {reason}"""
 
 _SYNTH_TMPL = """\
-Answer using ONLY the provided context snippets. Cite inline as [1], [2] etc.
-If the answer is not in the context, say so clearly. Do not invent facts.
+You are an expert research assistant. Answer using ONLY the provided context.
+
+Rules:
+1. Cite inline as [1], [2], etc. matching the context snippet numbers.
+2. If the context does not contain the answer, say: "The knowledge base does not contain information about this topic."
+3. Never invent facts. Never extrapolate beyond the context.
+4. Use markdown formatting for clarity (headers, bullet points, code blocks).
+5. If sources conflict, acknowledge the discrepancy.
+6. Use the conversation memory below (if present) to understand follow-up questions.
 
 {format_instructions}
+
+Conversation memory:
+{memory}
 
 Context:
 {context}
@@ -158,4 +176,4 @@ def make_rewrite_chain() -> "RunnableSerializable | None":
 
 
 def make_synth_chain() -> "RunnableSerializable | None":
-    return _chain(_SYNTH_TMPL, SynthesisOutput, fast=False, temp=0.1, tokens=1024)
+    return _chain(_SYNTH_TMPL, SynthesisOutput, fast=False, temp=0.1, tokens=2048)

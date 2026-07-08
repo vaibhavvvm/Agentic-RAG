@@ -1,5 +1,5 @@
 """
-RAG3 Query Expansion
+RAG Query Expansion
 =====================
 LLM-driven query reformulation: given the user's question, produce N
 diverse rewrites (paraphrases, entity-focused variants, higher-level

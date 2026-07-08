@@ -1,5 +1,5 @@
 """
-RAG3 Turn Summariser
+RAG Turn Summariser
 =====================
 Condenses batches of old conversation turns into a compact paragraph
 that can be stored in FAISS / graph memory without blowing the context

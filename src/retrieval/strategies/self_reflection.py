@@ -1,5 +1,5 @@
 """
-RAG3 Self-Reflection (CRAG-style)
+RAG Self-Reflection (CRAG-style)
 ====================================
 Grades the retrieved context for a query on three axes — relevance,
 sufficiency, and faithfulness potential — and returns a composite

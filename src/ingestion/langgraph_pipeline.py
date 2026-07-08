@@ -1,5 +1,5 @@
 """
-RAG3 LangGraph Ingestion Pipeline
+RAG LangGraph Ingestion Pipeline
 ===================================
 Stateful, agentic ingestion workflow implemented as a LangGraph state
 machine. Every node is a pure function that mutates a shared
@@ -21,6 +21,7 @@ not installed, preserving identical semantics.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -95,13 +96,14 @@ class _Deps:
 
 
 # ---------------------------------------------------------------------------
-# Node implementations
+# Async Node implementations
 # ---------------------------------------------------------------------------
 
 
 def _parse(deps: _Deps):
-    def _node(state: IngestionState) -> IngestionState:
-        state.parsed = deps.parser.run(state.file_path)
+    async def _node(state: IngestionState) -> IngestionState:
+        # docling blocks, so run it in a thread
+        state.parsed = await asyncio.to_thread(deps.parser.run, state.file_path)
         state.stats["images_found"] = len(state.parsed.images)
         state.stats["tables_found"] = len(state.parsed.tables)
         return state
@@ -109,20 +111,18 @@ def _parse(deps: _Deps):
 
 
 def _vlm_describe(deps: _Deps):
-    def _node(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         assert state.parsed is not None
         if not state.parsed.images:
             return state
         png_bytes = [img.bytes_png for img in state.parsed.images]
-        state.image_summaries = deps.vision.describe_bytes(png_bytes)
+        state.image_summaries = await asyncio.to_thread(deps.vision.describe_bytes, png_bytes)
         return state
     return _node
 
 
 def _push_images_to_minio(deps: _Deps):
-    import asyncio
-
-    async def _run(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         assert state.parsed is not None
         if not state.parsed.images:
             return state
@@ -140,52 +140,34 @@ def _push_images_to_minio(deps: _Deps):
             urls.append(url)
         state.image_urls = urls
         return state
-
-    def _node(state: IngestionState) -> IngestionState:
-        return asyncio.get_event_loop().run_until_complete(_run(state)) \
-            if not asyncio.get_event_loop().is_running() else asyncio.ensure_future(_run(state))  # type: ignore[return-value]
-
-    # Simpler sync wrapper that creates its own loop when needed:
-    def _sync_node(state: IngestionState) -> IngestionState:
-        try:
-            return asyncio.run(_run(state))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            try:
-                return loop.run_until_complete(_run(state))
-            finally:
-                loop.close()
-    return _sync_node
+    return _node
 
 
 def _structure_text():
-    def _node(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         assert state.parsed is not None
         raw_md = state.parsed.markdown
         if not raw_md.strip():
             state.markdown_clean = ""
             return state
-        # Keep large docs manageable: only ask the LLM to clean the first ~8k
-        # chars, then concatenate the rest verbatim.
         head = raw_md[:8000]
         tail = raw_md[8000:]
-        cleaned = chat_sync(
-            _STRUCTURE_PROMPT, head,
-            fast=True, temperature=0.0, max_tokens=2048,
-        ) or head
+        cleaned = await asyncio.to_thread(
+            chat_sync,
+            _STRUCTURE_PROMPT, head, fast=True, temperature=0.0, max_tokens=2048
+        )
+        cleaned = cleaned or head
         state.markdown_clean = cleaned + ("\n\n" + tail if tail else "")
         return state
     return _node
 
 
 def _prepare_docs(deps: _Deps):
-    def _node(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         assert state.parsed is not None
         source = str(state.file_path.name)
         docs: list[Document] = []
 
-        # Text chunks (simple paragraph split — heavier chunkers can run
-        # downstream via the existing Haystack pipeline if needed).
         md = state.markdown_clean or state.parsed.markdown
         paragraphs = [p.strip() for p in md.split("\n\n") if p.strip()]
         for i, para in enumerate(paragraphs):
@@ -194,14 +176,12 @@ def _prepare_docs(deps: _Deps):
                 meta={"source_doc_id": source, "chunk_index": i, "kind": "text"},
             ))
 
-        # Table chunks
         for i, tbl in enumerate(state.parsed.tables):
             docs.append(Document(
                 content=tbl,
                 meta={"source_doc_id": source, "chunk_index": 10_000 + i, "kind": "table"},
             ))
 
-        # Image summaries — with MinIO URL attached so retrieval can surface the image.
         for i, (img, summary) in enumerate(
             zip(state.parsed.images, state.image_summaries, strict=False)
         ):
@@ -225,42 +205,28 @@ def _prepare_docs(deps: _Deps):
 
 
 def _embed_and_store(deps: _Deps):
-    import asyncio
-
-    async def _run(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         docs = state.docs_for_vector
         if not docs:
             return state
         texts = [d.content or "" for d in docs]
-        vecs = deps.embedder.run(texts=texts)["embeddings"]
+        vecs = await asyncio.to_thread(deps.embedder.run, texts=texts)
+        vecs = vecs["embeddings"]
         for d, v in zip(docs, vecs, strict=False):
             d.embedding = v
         await deps.vector_store.upsert_documents(docs)
         state.stats["vectors_written"] = len(docs)
         return state
-
-    def _sync(state: IngestionState) -> IngestionState:
-        try:
-            return asyncio.run(_run(state))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            try:
-                return loop.run_until_complete(_run(state))
-            finally:
-                loop.close()
-    return _sync
+    return _node
 
 
 def _push_to_graph(deps: _Deps):
-    import asyncio
-
-    async def _run(state: IngestionState) -> IngestionState:
+    async def _node(state: IngestionState) -> IngestionState:
         n_ep = 0
         n_tri = 0
         for d in state.docs_for_graph:
             episode_id = f"{d.meta.get('source_doc_id','doc')}:{d.meta.get('chunk_index',0)}"
             content = d.content or ""
-            # 1. Vanilla episode (content + metadata) — keeps existing retrieval paths alive.
             try:
                 await deps.graph_store.add_episode(
                     content=content,
@@ -271,9 +237,8 @@ def _push_to_graph(deps: _Deps):
             except Exception as exc:
                 log.debug("graph episode add failed", extra={"err": str(exc)})
 
-            # 2. ER extraction via gpt-oss-20b chain (Ollama → Groq → OpenRouter).
             try:
-                triples = extract_triples(content)
+                triples = await asyncio.to_thread(extract_triples, content)
                 if triples:
                     written = await deps.graph_store.add_triples(
                         [t.as_dict() for t in triples],
@@ -286,17 +251,7 @@ def _push_to_graph(deps: _Deps):
         state.stats["graph_episodes"] = n_ep
         state.stats["graph_triples"] = n_tri
         return state
-
-    def _sync(state: IngestionState) -> IngestionState:
-        try:
-            return asyncio.run(_run(state))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            try:
-                return loop.run_until_complete(_run(state))
-            finally:
-                loop.close()
-    return _sync
+    return _node
 
 
 # ---------------------------------------------------------------------------
@@ -306,8 +261,7 @@ def _push_to_graph(deps: _Deps):
 
 class LangGraphIngestionPipeline:
     """
-    LangGraph-based ingestion orchestrator. Falls back to sequential
-    execution when ``langgraph`` is unavailable.
+    LangGraph-based ingestion orchestrator natively asynchronous.
     """
 
     def __init__(
@@ -331,7 +285,7 @@ class LangGraphIngestionPipeline:
         if not _LANGGRAPH_AVAILABLE:
             log.warning("langgraph not installed — ingestion uses sequential fallback")
 
-    def _build(self):  # pragma: no cover - requires langgraph
+    def _build(self):
         g = StateGraph(IngestionState)
         g.add_node("parse", _parse(self._deps))
         g.add_node("vlm_describe", _vlm_describe(self._deps))
@@ -351,19 +305,19 @@ class LangGraphIngestionPipeline:
         g.add_edge("push_to_graph", END)
         return g.compile()
 
-    def run(self, file_path: Path) -> dict[str, Any]:
+    async def arun(self, file_path: Path) -> dict[str, Any]:
         state = IngestionState(file_path=Path(file_path))
-        if self._graph is not None:  # pragma: no cover
-            out = self._graph.invoke(state)
+        if self._graph is not None:
+            out = await self._graph.ainvoke(state)
             stats = (out.get("stats") if isinstance(out, dict) else getattr(out, "stats", {})) or {}
             return dict(stats)
 
         # Sequential fallback
-        state = _parse(self._deps)(state)
-        state = _vlm_describe(self._deps)(state)
-        state = _push_images_to_minio(self._deps)(state)
-        state = _structure_text()(state)
-        state = _prepare_docs(self._deps)(state)
-        state = _embed_and_store(self._deps)(state)
-        state = _push_to_graph(self._deps)(state)
+        state = await _parse(self._deps)(state)
+        state = await _vlm_describe(self._deps)(state)
+        state = await _push_images_to_minio(self._deps)(state)
+        state = await _structure_text()(state)
+        state = await _prepare_docs(self._deps)(state)
+        state = await _embed_and_store(self._deps)(state)
+        state = await _push_to_graph(self._deps)(state)
         return dict(state.stats)

@@ -1,5 +1,5 @@
 """
-RAG3 Haystack ReAct Retrieval Agent
+RAG Haystack ReAct Retrieval Agent
 =====================================
 ReAct-style (Reason + Act) retrieval controller. Given a query, the LLM
 is prompted to choose a *tool* from a registered set (vector, graph,

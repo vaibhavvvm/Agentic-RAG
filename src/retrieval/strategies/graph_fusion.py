@@ -1,5 +1,5 @@
 """
-RAG3 Graph + Vector Fusion
+RAG Graph + Vector Fusion
 ============================
 Runs vector and graph retrieval in parallel, converts graph nodes/facts
 to ``Document`` objects, and fuses both streams via Reciprocal Rank

@@ -1,5 +1,5 @@
 """
-RAG3 Query Router (Tier-1 regex inside retrieval)
+RAG Query Router (Tier-1 regex inside retrieval)
 ====================================================
 The retrieval-level router classifies *how* to search — vector vs. graph
 vs. hybrid — given a query and (optionally) conversation context.

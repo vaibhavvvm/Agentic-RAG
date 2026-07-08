@@ -1,5 +1,5 @@
 """
-RAG3 Metrics Collector
+RAG Metrics Collector
 =======================
 In-process latency and counter tracker with percentile support.
 
@@ -130,7 +130,7 @@ class Counter:
 
 class MetricsCollector:
     """
-    Singleton metrics collector for RAG3.
+    Singleton metrics collector for RAG.
 
     All public methods are thread-safe.
 

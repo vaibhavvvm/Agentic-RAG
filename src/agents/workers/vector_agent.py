@@ -1,5 +1,5 @@
 """
-RAG3 Vector Worker Agent
+RAG Vector Worker Agent
 ==========================
 Thin conversational wrapper around the ``AdvancedRAGAgent`` inner
 class — a small ReAct-shaped controller that:

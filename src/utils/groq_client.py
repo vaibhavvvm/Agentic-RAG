@@ -1,5 +1,5 @@
 """
-RAG3 RotatableGroqGenerator
+RAG RotatableGroqGenerator
 ============================
 A Haystack 2.x-compatible ``ChatGenerator`` component that wraps the
 Groq API with:
@@ -26,7 +26,7 @@ Usage::
 
     gen = RotatableGroqGenerator(model="llama3-70b-8192")
     result = gen.run(messages=[ChatMessage.from_user("Hello")])
-    print(result["replies"][0].content)
+    print(result["replies"][0].text)
 """
 
 from __future__ import annotations
@@ -310,6 +310,7 @@ class RotatableGroqGenerator:
                         "status_code": exc.status_code,
                         "attempt": attempt,
                         "retry_in_seconds": delay,
+                        "groq_error": str(exc),
                     },
                 )
                 last_exc = exc
@@ -360,7 +361,7 @@ class RotatableGroqGenerator:
         result: list[dict[str, str]] = []
         for msg in messages:
             role = role_map.get(msg.role, "user")
-            result.append({"role": role, "content": msg.content or ""})
+            result.append({"role": role, "content": msg.text or ""})
         return result
 
     def warm_up(self) -> None:
