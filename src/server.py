@@ -110,25 +110,26 @@ async def health_check():
         return {"status": "offline", "error": "RAGSystem not initialized"}
 
     cfg = get_settings()
-    services = {"postgres": "offline", "neo4j": "offline", "minio": "offline"}
+    services = {"vector_store": "offline", "graph_store": "offline", "minio": "offline"}
 
-    # Verify PostgreSQL
-    if system.vector_store and hasattr(system.vector_store, "_pool") and system.vector_store._pool:
+    # Verify Vector Store (Pinecone or PostgreSQL or Memory)
+    if system.vector_store:
         try:
-            async with system.vector_store._pool.acquire() as conn:
-                await conn.execute("SELECT 1;")
-            services["postgres"] = "online"
+            doc_count = await system.vector_store.count_documents()
+            services["vector_store"] = f"online ({type(system.vector_store).__name__})"
         except Exception as e:
-            services["postgres"] = f"error: {str(e)[:80]}"
+            services["vector_store"] = f"error: {str(e)[:80]}"
+    else:
+        doc_count = 0
 
-    # Verify Neo4j
+    # Verify Neo4j / AuraDB
     if system.graph_store and hasattr(system.graph_store, "_driver") and system.graph_store._driver:
         try:
             async with system.graph_store._driver.session(database=system.graph_store._database) as session:
                 await session.run("RETURN 1;")
-            services["neo4j"] = "online"
+            services["graph_store"] = f"online ({type(system.graph_store).__name__})"
         except Exception as e:
-            services["neo4j"] = f"error: {str(e)[:80]}"
+            services["graph_store"] = f"error: {str(e)[:80]}"
 
     # Verify MinIO
     if system.minio:
@@ -138,21 +139,14 @@ async def health_check():
             services["minio"] = f"error: {str(e)[:80]}"
 
     # Dynamic counts
-    counts = {"documents": 0, "chunks": 0, "episodes": 0, "triples": 0}
+    counts = {"documents": 0, "chunks": doc_count, "episodes": 0, "triples": 0}
     try:
-        if services["postgres"] == "online":
-            counts["chunks"] = await system.vector_store.count_documents()
-            async with system.vector_store._pool.acquire() as conn:
-                row_docs = await conn.fetchval(
-                    "SELECT COUNT(DISTINCT metadata->>'source_doc_id') FROM documents;"
-                )
-                counts["documents"] = row_docs or 0
-        if services["neo4j"] == "online":
+        if "online" in services["graph_store"]:
             async with system.graph_store._driver.session(database=system.graph_store._database) as session:
                 res_ep = await session.run("MATCH (e:Episode) RETURN count(e) as c")
                 rec_ep = await res_ep.single()
                 counts["episodes"] = rec_ep["c"] if rec_ep else 0
-                res_rel = await session.run("MATCH ()-[r:RELATES_TO]->() RETURN count(r) as c")
+                res_rel = await session.run("MATCH ()-[r:RELATED]->() RETURN count(r) as c")
                 rec_rel = await res_rel.single()
                 counts["triples"] = rec_rel["c"] if rec_rel else 0
     except Exception as e:
@@ -164,6 +158,9 @@ async def health_check():
             "app_name": cfg.app_name,
             "app_version": cfg.app_version,
             "environment": cfg.environment,
+            "vector_backend": cfg.vector_backend,
+            "graph_backend": cfg.graph_backend,
+            "embedding_backend": cfg.embedding_backend,
             "debug": cfg.debug,
         },
         "services": services,

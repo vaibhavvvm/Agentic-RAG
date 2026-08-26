@@ -27,7 +27,7 @@ from src.agents.orchestrator import Orchestrator
 from src.config import get_settings
 from src.evaluation.datasets import load_jsonl
 from src.evaluation.metrics import evaluate as run_eval
-from src.ingestion.embedder import CachedOllamaEmbedder
+from src.ingestion.embedder_factory import build_embedder
 from src.ingestion.langgraph_pipeline import LangGraphIngestionPipeline
 from src.monitoring.langsmith import setup_langsmith
 from src.monitoring.logger import get_logger
@@ -64,7 +64,7 @@ class RAGSystem:
         self._graph_pref = graph_backend
         self._vector_pref = vector_backend
 
-        self.embedder = CachedOllamaEmbedder()
+        self.embedder = build_embedder()
         self.summary_store = PgSummaryStore()
         self.minio = MinioObjectStore()
 

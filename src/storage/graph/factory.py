@@ -51,6 +51,7 @@ class NullGraphStore(BaseGraphStore):
 
 _FALLBACK_ORDER: dict[str, list[str]] = {
     "neo4j":   ["neo4j", "falkor", "pggraph"],
+    "auradb":  ["neo4j", "falkor", "pggraph"],
     "falkor":  ["falkor", "neo4j", "pggraph"],
     "pggraph": ["pggraph", "neo4j", "falkor"],
     "none":    [],
@@ -59,7 +60,7 @@ _FALLBACK_ORDER: dict[str, list[str]] = {
 
 async def _try_instantiate(name: str) -> BaseGraphStore | None:
     try:
-        if name == "neo4j":
+        if name in {"neo4j", "auradb"}:
             from src.storage.graph.neo4j_store import Neo4jGraphStore
             store: BaseGraphStore = Neo4jGraphStore()
         elif name == "falkor":

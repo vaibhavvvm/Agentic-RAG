@@ -21,6 +21,19 @@ async def build_vector_store(preferred: str | None = None) -> BaseVectorStore:
     cfg = get_settings()
     choice = (preferred or cfg.vector_backend).lower()
 
+    if choice == "pinecone":
+        try:
+            from src.storage.vector.pinecone_store import PineconeVectorStore
+            pc_store = PineconeVectorStore()
+            await pc_store.initialise()
+            log.info("vector backend online", extra={"backend": "pinecone"})
+            return pc_store
+        except Exception as exc:
+            log.warning("Pinecone initialization failed, falling back to memory store", extra={"error": str(exc)[:200]})
+            mem = InMemoryVectorStore()
+            await mem.initialise()
+            return mem
+
     if choice == "memory":
         store: BaseVectorStore = InMemoryVectorStore()
         await store.initialise()

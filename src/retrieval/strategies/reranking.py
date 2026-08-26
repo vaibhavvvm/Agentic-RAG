@@ -126,7 +126,9 @@ class OllamaRanker:  # name preserved for back-compat across callers
         k = top_k or self.top_k
 
         with timed_operation(log, "reranker.score", count=len(documents)):
-            if self.backend == "local_hf" and self._hf_model is not None:
+            if self.backend == "gemini":
+                scores = self._score_gemini(query, [d.content or "" for d in documents])
+            elif self.backend == "local_hf" and self._hf_model is not None:
                 scores = self._score_hf(query, [d.content or "" for d in documents])
             elif self.backend == "ollama":
                 scores = asyncio.run(self._score_all_ollama(query, documents))
@@ -221,3 +223,44 @@ class OllamaRanker:  # name preserved for back-compat across callers
         if not q or not p:
             return 0.0
         return len(q & p) / max(1, len(q))
+
+    # ------------------------------------------------------------------
+    # Gemini LLM-based scoring
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _score_gemini(query: str, passages: list[str]) -> list[float]:
+        from src.utils.llm import chat_json
+        if not passages:
+            return []
+
+        prompt = (
+            f"Rate the relevance of each passage to the query on a scale of 0.0 to 1.0.\n"
+            f"Query: {query}\n\n"
+        )
+        for i, p in enumerate(passages):
+            snippet = (p or "").replace("\n", " ")[:350]
+            prompt += f"Passage {i+1}: {snippet}\n"
+
+        prompt += '\nReturn JSON format: {"scores": [score1, score2, ...]}'
+
+        res = chat_json(
+            "You are an expert search relevance evaluator. Output only JSON containing numerical scores between 0.0 and 1.0 for each passage.",
+            prompt,
+            fast=True,
+            temperature=0.0,
+            default={"scores": []},
+        )
+        scores_raw = res.get("scores", []) if isinstance(res, dict) else []
+        scores: list[float] = []
+        for s in scores_raw:
+            try:
+                scores.append(max(0.0, min(1.0, float(s))))
+            except (TypeError, ValueError):
+                scores.append(0.5)
+
+        # Pad with default score if model returned fewer scores than passages
+        while len(scores) < len(passages):
+            scores.append(0.5)
+
+        return scores[: len(passages)]

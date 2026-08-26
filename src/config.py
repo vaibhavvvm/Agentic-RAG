@@ -240,28 +240,84 @@ class OpenRouterSettings(BaseSettings):
         return keys
 
 
+class GeminiSettings(BaseSettings):
+    """Google Gemini API settings — primary LLM and embedding provider."""
+
+    model_config = SettingsConfigDict(env_prefix="GEMINI_", extra="ignore")
+
+    api_key: SecretStr | None = Field(default=None)
+
+    # Chat / generation models
+    primary_model: str = Field(
+        default="gemini-3.5-flash",
+        description="Default Gemini model for generation and synthesis",
+    )
+    thinking_model: str = Field(
+        default="gemini-3.7-flash",
+        description="Reasoning-capable model for complex analysis",
+    )
+    fast_model: str = Field(
+        default="gemini-3.5-flash",
+        description="Lightweight model for routing/grading tasks",
+    )
+
+    # Embedding
+    embedding_model: str = Field(
+        default="gemini-embedding-001",
+        description="Gemini embedding model tag",
+    )
+    embedding_dimensions: int = Field(
+        default=768,
+        description="Output dimensionality for embeddings (768, 1536, or 3072)",
+    )
+
+    # Rate-limit handling
+    max_retries: PositiveInt = Field(default=3)
+    request_timeout: PositiveInt = Field(default=120, description="Seconds")
+
+    # Generation defaults
+    temperature: float = Field(default=0.1, ge=0.0, le=2.0)
+    max_tokens: PositiveInt = Field(default=2048)
+
+
+class PineconeSettings(BaseSettings):
+    """Pinecone serverless vector database settings."""
+
+    model_config = SettingsConfigDict(env_prefix="PINECONE_", extra="ignore")
+
+    api_key: SecretStr | None = Field(default=None)
+    index_name: str = Field(default="agentic-rag")
+    cloud: str = Field(default="aws", description="Cloud provider: aws | gcp | azure")
+    region: str = Field(default="us-east-1")
+    metric: str = Field(default="cosine", description="Distance metric: cosine | euclidean | dotproduct")
+    dimension: int = Field(default=768)
+    namespace: str = Field(default="default")
+
+
 class ERExtractionSettings(BaseSettings):
     """Entity-relation extraction models for graph-episode ingestion."""
 
     model_config = SettingsConfigDict(env_prefix="ER_", extra="ignore")
 
-    # Ollama primary: user-provided local model
+    # Gemini primary (cloud)
+    gemini_model: str = Field(default="gemini-3.5-flash")
+    # Ollama fallback: user-provided local model
     ollama_model: str = Field(default="gpt-oss:latest")
-    # Groq fallback: Groq-hosted gpt-oss-20b
+    # Groq fallback
     groq_model: str = Field(default="llama-3.1-8b-instant")
     # OpenRouter secondary fallback
     openrouter_model: str = Field(default="llama-3.1-8b-instant")
     max_triples_per_episode: PositiveInt = Field(default=20)
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     max_tokens: PositiveInt = Field(default=1024)
-    # Try order — any subset of {"ollama","groq","openrouter"}
-    fallback_chain: list[Literal["ollama", "groq", "openrouter"]] = Field(
-        default=["ollama", "groq", "openrouter"],
+    # Try order — any subset of {"gemini","ollama","groq","openrouter"}
+    fallback_chain: list[Literal["gemini", "ollama", "groq", "openrouter"]] = Field(
+        default=["gemini", "groq", "openrouter"],
     )
 
 
 class RerankerSettings(BaseSettings):
-    """Local HuggingFace reranker (bge-reranker-v2-m3)."""
+    """Reranker configuration — supports local HF, Ollama, and Gemini backends."""
 
     model_config = SettingsConfigDict(env_prefix="RERANKER_", extra="ignore")
 
@@ -272,8 +328,8 @@ class RerankerSettings(BaseSettings):
     device: Literal["cpu", "cuda", "auto"] = Field(default="auto")
     batch_size: PositiveInt = Field(default=16)
     max_length: PositiveInt = Field(default=512)
-    backend: Literal["local_hf", "ollama"] = Field(
-        default="ollama",
+    backend: Literal["local_hf", "ollama", "gemini", "lexical"] = Field(
+        default="gemini",
         description="Which reranker backend to use",
     )
 
@@ -484,11 +540,13 @@ class Settings(BaseSettings):
     # ---- Nested groups ----
     postgres: PostgresSettings = Field(default_factory=PostgresSettings)
     neo4j: Neo4jSettings = Field(default_factory=Neo4jSettings)
+    gemini: GeminiSettings = Field(default_factory=GeminiSettings)
     groq: GroqSettings = Field(default_factory=GroqSettings)
     ollama: OllamaSettings = Field(default_factory=OllamaSettings)
     minio: MinioSettings = Field(default_factory=MinioSettings)
     falkor: FalkorSettings = Field(default_factory=FalkorSettings)
     openrouter: OpenRouterSettings = Field(default_factory=OpenRouterSettings)
+    pinecone: PineconeSettings = Field(default_factory=PineconeSettings)
     er: ERExtractionSettings = Field(default_factory=ERExtractionSettings)
     reranker: RerankerSettings = Field(default_factory=RerankerSettings)
     memory: MemorySettings = Field(default_factory=MemorySettings)
@@ -499,16 +557,20 @@ class Settings(BaseSettings):
     langsmith: LangSmithSettings = Field(default_factory=LangSmithSettings)
 
     # ---- Pluggable backends (can be overridden per CLI run) ----
-    graph_backend: Literal["neo4j", "falkor", "pggraph", "none"] = Field(
-        default="neo4j",
-        description="Which graph store to use; 'none' disables graph features.",
+    graph_backend: Literal["neo4j", "auradb", "falkor", "pggraph", "none"] = Field(
+        default="auradb",
+        description="Which graph store to use; 'auradb' uses Neo4j AuraDB cloud; 'none' disables graph features.",
     )
-    vector_backend: Literal["pgvector", "memory", "auto"] = Field(
-        default="auto",
-        description="'auto' tries pgvector and falls back to in-memory on failure.",
+    vector_backend: Literal["pinecone", "pgvector", "memory", "auto"] = Field(
+        default="pinecone",
+        description="'pinecone' for cloud; 'auto' tries pgvector and falls back to in-memory on failure.",
     )
-    llm_fallback_chain: list[Literal["groq", "openrouter", "ollama"]] = Field(
-        default=["ollama", "groq", "openrouter"],
+    embedding_backend: Literal["gemini", "ollama"] = Field(
+        default="gemini",
+        description="Which embedding provider to use.",
+    )
+    llm_fallback_chain: list[Literal["gemini", "groq", "openrouter", "ollama"]] = Field(
+        default=["gemini", "groq", "openrouter"],
         description="LLM providers to try in order on failure.",
     )
 

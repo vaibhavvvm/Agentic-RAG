@@ -48,6 +48,17 @@ def _get_generator(model: str) -> RotatableGroqGenerator:
         return gen
 
 
+def _try_gemini(system: str, user: str, fast: bool, model: str | None,
+                temperature: float | None, max_tokens: int | None) -> str:
+    from src.utils.gemini_client import GeminiClient
+    return GeminiClient().chat(
+        system, user,
+        model=model, fast=fast,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
+
 def _try_groq(system: str, user: str, fast: bool, model: str | None,
               temperature: float | None, max_tokens: int | None) -> str:
     cfg = get_settings().groq
@@ -107,6 +118,7 @@ def _try_ollama(system: str, user: str, fast: bool, model: str | None,
 
 
 _PROVIDERS = {
+    "gemini": _try_gemini,
     "groq": _try_groq,
     "openrouter": _try_openrouter,
     "ollama": _try_ollama,
