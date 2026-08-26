@@ -100,7 +100,7 @@ _LLM_SYSTEM = (
     '  "general_chat" — greeting, small talk, meta\n'
     '  "vector_retrieval" — factual lookup\n'
     '  "graph_retrieval" — relational / multi-hop\n'
-    '  "hybrid_retrieval" — mix of lookup + relations\n'
+    '  "hybrid_retrieval" — mix of lookup + relations OR deep/detailed explanation queries\n'
     'Return JSON: {"intent": "...", "confidence": 0.0-1.0, "reason": "short"}'
 )
 

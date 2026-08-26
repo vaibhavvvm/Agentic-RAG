@@ -71,6 +71,7 @@ Guidelines:
 - Follow-up questions (e.g. "tell me more", "what about X") should inherit the previous intent type
 - Questions about document content → vector_retrieval
 - Questions about connections between concepts → graph_retrieval
+- VERY IMPORTANT: If the user requests a "deep explanation", "detailed analysis", or "comprehensive overview" (e.g. "explain deeply"), ALWAYS classify the intent as hybrid_retrieval to ensure both factual lookup and concept relationships are considered.
 - When in doubt, prefer vector_retrieval over graph_retrieval
 
 {format_instructions}
@@ -108,6 +109,7 @@ Rules:
 4. Use markdown formatting for clarity (headers, bullet points, code blocks).
 5. If sources conflict, acknowledge the discrepancy.
 6. Use the conversation memory below (if present) to understand follow-up questions.
+7. VERY IMPORTANT: If the user asks for a deep explanation or detailed analysis, you MUST write a comprehensive, multi-paragraph response. One-line answers are strictly forbidden for complex queries.
 
 {format_instructions}
 

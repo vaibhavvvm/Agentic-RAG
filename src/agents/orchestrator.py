@@ -121,7 +121,8 @@ _SYNTH_FALLBACK_SYSTEM = (
     "3. Do NOT invent, hallucinate, or extrapolate beyond what the context states.\n"
     "4. Use the conversation memory to understand follow-up questions and maintain coherence.\n"
     "5. Structure your answer clearly with markdown formatting when appropriate.\n"
-    "6. If multiple sources corroborate, synthesize them into a unified answer."
+    "6. If multiple sources corroborate, synthesize them into a unified answer.\n"
+    "7. VERY IMPORTANT: If the user asks for a deep explanation or detailed analysis, you MUST write a comprehensive, multi-paragraph response. One-line answers are strictly forbidden for complex queries."
 )
 
 
@@ -265,11 +266,12 @@ def _synthesize_node(synth_chain):
 
         is_analytical = any(
             kw in state.original_query.lower()
-            for kw in ["explain", "detail", "deep", "analyze", "impact", "effect", "difference"]
+            for kw in ["explain", "detail", "deep", "analyze", "impact", "effect", "difference", "comprehensive"]
         )
         verbosity_instruction = (
-            "\n\n[INSTRUCTION]\nThe user has requested an in-depth explanation or analysis. "
-            "Please provide a comprehensive, multi-paragraph response covering all relevant nuances and details."
+            "\n\n[CRITICAL INSTRUCTION]\nThe user has explicitly requested an in-depth explanation or analysis. "
+            "You MUST provide a highly detailed, comprehensive, multi-paragraph response covering all relevant nuances. "
+            "Under no circumstances should you provide a one-line or brief summary."
             if is_analytical else ""
         )
 

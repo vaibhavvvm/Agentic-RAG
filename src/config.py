@@ -246,7 +246,7 @@ class ERExtractionSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="ER_", extra="ignore")
 
     # Ollama primary: user-provided local model
-    ollama_model: str = Field(default="gpt-oss:20b")
+    ollama_model: str = Field(default="gpt-oss:latest")
     # Groq fallback: Groq-hosted gpt-oss-20b
     groq_model: str = Field(default="llama-3.1-8b-instant")
     # OpenRouter secondary fallback
@@ -273,7 +273,7 @@ class RerankerSettings(BaseSettings):
     batch_size: PositiveInt = Field(default=16)
     max_length: PositiveInt = Field(default=512)
     backend: Literal["local_hf", "ollama"] = Field(
-        default="local_hf",
+        default="ollama",
         description="Which reranker backend to use",
     )
 
@@ -508,7 +508,7 @@ class Settings(BaseSettings):
         description="'auto' tries pgvector and falls back to in-memory on failure.",
     )
     llm_fallback_chain: list[Literal["groq", "openrouter", "ollama"]] = Field(
-        default=["groq", "openrouter", "ollama"],
+        default=["ollama", "groq", "openrouter"],
         description="LLM providers to try in order on failure.",
     )
 

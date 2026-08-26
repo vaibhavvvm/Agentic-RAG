@@ -1,50 +1,33 @@
 # Environments
 .env
-.env.*
-!.env.example
-venv/
 .venv/
-src/.venv/
-src/venv/
-env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Logs
+# Logs and Data
 logs/
+data/
 *.log
 
-# Data
-data/
-*.sqlite3
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Node / Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.npm/
+# Type hints
+.mypy_cache/
+.pyre/
 
 # IDEs
 .idea/
@@ -52,6 +35,5 @@ frontend/.npm/
 *.swp
 *.swo
 
-# OS
+# macOS
 .DS_Store
-Thumbs.db

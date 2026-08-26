@@ -1,6 +1,9 @@
 version: '3.8'
 
 services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL with pgvector extension
+  # ---------------------------------------------------------------------------
   postgres:
     image: pgvector/pgvector:pg16
     container_name: rag_postgres_vector
@@ -19,6 +22,9 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # 2. pgAdmin 4 Web GUI (Database Management UI at http://localhost:5050)
+  # ---------------------------------------------------------------------------
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: rag_pgadmin
@@ -33,12 +39,15 @@ services:
       - postgres
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # 3. Neo4j Graph Database (Browser GUI at http://localhost:7474)
+  # ---------------------------------------------------------------------------
   neo4j:
     image: neo4j:5
     container_name: rag_neo4j_graph
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "7474:7474" # HTTP Browser
+      - "7687:7687" # Bolt Protocol
     environment:
       - NEO4J_AUTH=neo4j/agenticrag123
       - NEO4J_PLUGINS=["apoc"]
@@ -47,13 +56,16 @@ services:
       - neo4j_logs:/logs
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # 4. MinIO Object Storage (Console UI at http://localhost:9001)
+  # ---------------------------------------------------------------------------
   minio:
     image: minio/minio:latest
     container_name: rag_minio
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9000" # API
+      - "9001:9001" # Web Console
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin

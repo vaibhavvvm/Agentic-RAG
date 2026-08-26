@@ -217,7 +217,7 @@ async def _ingest(
             files = [path]
 
         for f in files:
-            stats = system.ingest_file(f)
+            stats = await system.ingest_file(f)
             console.print(f"[green]Ingested[/green] {f.name}: {stats}")
     finally:
         await system.shutdown()

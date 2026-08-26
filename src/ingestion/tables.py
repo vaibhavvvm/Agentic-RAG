@@ -42,7 +42,7 @@ from haystack.dataclasses import ChatMessage
 
 from src.monitoring.logger import get_logger, timed_operation
 from src.monitoring.metrics import MetricsCollector
-from src.utils.groq_client import RotatableGroqGenerator
+from src.utils.llm import chat_sync
 
 log = get_logger(__name__)
 
@@ -118,15 +118,14 @@ class TableReformatter:
 
         from src.config import get_settings
         cfg = get_settings()
-        model = llm_model or cfg.groq.fast_model
-        self._llm = RotatableGroqGenerator(model=model) if use_llm else None
+        self._model = llm_model or cfg.groq.fast_model
 
         log.info(
             "TableReformatter initialised",
             extra={
                 "llm_threshold_cells": llm_threshold_cells,
                 "use_llm": use_llm,
-                "model": model if use_llm else "disabled",
+                "model": self._model if use_llm else "disabled",
             },
         )
 
@@ -186,7 +185,7 @@ class TableReformatter:
             strategy_used="rule_based",
         )
 
-        if self.use_llm and self._llm and total_cells > self.llm_threshold_cells:
+        if self.use_llm and total_cells > self.llm_threshold_cells:
             tbl.llm_summary = self._llm_summarise(html, context)
             tbl.strategy_used = "llm"
             tbl.natural_language = tbl.llm_summary  # prefer LLM for large tables
@@ -214,14 +213,14 @@ class TableReformatter:
             user_content += f"\n\nSurrounding document context:\n{context[:400]}"
 
         try:
-            result = self._llm.run(
-                messages=[
-                    ChatMessage.from_system(system_prompt),
-                    ChatMessage.from_user(user_content),
-                ],
-                generation_kwargs={"max_tokens": 400, "temperature": 0.1},
+            result = chat_sync(
+                system=system_prompt,
+                user=user_content,
+                fast=True,
+                max_tokens=400,
+                temperature=0.1
             )
-            return result["replies"][0].content.strip()
+            return result
         except Exception as exc:
             log.warning("LLM table reformatting failed", extra={"error": str(exc)})
             self._metrics.record_event("tables.llm_error")

@@ -49,7 +49,7 @@ from haystack.dataclasses import ChatMessage
 from src.config import get_settings
 from src.monitoring.logger import get_logger, timed_operation
 from src.monitoring.metrics import MetricsCollector
-from src.utils.groq_client import RotatableGroqGenerator
+from src.utils.llm import chat_sync
 
 log = get_logger(__name__)
 
@@ -112,7 +112,7 @@ class ContextualChunker:
         cache_enabled: bool = True,
     ) -> None:
         cfg = get_settings()
-        self.model = model or cfg.groq.fast_model
+        self.model = model  # model override, otherwise uses fallback chain (Ollama first)
         self.backdrop_chars = backdrop_chars
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -120,11 +120,7 @@ class ContextualChunker:
         self._cache_enabled = cache_enabled
         self._cache: dict[str, str] = {}
 
-        self._llm = RotatableGroqGenerator(
-            model=self.model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+
         self._metrics = MetricsCollector.get_instance()
 
         log.info(
@@ -238,17 +234,14 @@ class ContextualChunker:
             chunk=chunk[:1500],  # cap chunk length sent to LLM
         )
         try:
-            result = self._llm.run(
-                messages=[
-                    ChatMessage.from_system(_SYSTEM_PROMPT),
-                    ChatMessage.from_user(user_msg),
-                ],
-                generation_kwargs={
-                    "max_tokens": self.max_tokens,
-                    "temperature": self.temperature,
-                },
+            result = chat_sync(
+                system=_SYSTEM_PROMPT,
+                user=user_msg,
+                model=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
             )
-            return result["replies"][0].content.strip()
+            return result.strip()
         except Exception as exc:
             log.warning(
                 "ContextualChunker LLM call failed",

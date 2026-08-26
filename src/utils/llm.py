@@ -125,10 +125,10 @@ def chat_sync(
     """
     Execute a single chat turn through the configured provider chain.
 
-    Walks ``settings.llm_fallback_chain`` (default: groq → openrouter →
-    ollama). First provider to return a non-empty reply wins.
+    Walks ``settings.llm_fallback_chain`` (default: ollama → groq → openrouter).
+    First provider to return a non-empty reply wins.
     """
-    chain = get_settings().llm_fallback_chain or ["groq"]
+    chain = get_settings().llm_fallback_chain or ["ollama"]
     last_error: Exception | None = None
     for provider in chain:
         fn = _PROVIDERS.get(provider)
